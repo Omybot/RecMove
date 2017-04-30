@@ -21,7 +21,8 @@ void Init_Interrupt_Priority(void)
 {
 	IPC14bits.QEI1IP = 7;			// Quad Encoder Interrupt
 	IPC18bits.QEI2IP = 7;			// Quad Encoder Interrupt
-	IPC15bits.DMA5IP  = 6;			// ADC Interrupt
+	IPC1bits.T2IP = 6; 				//Set Timer2 Interrupt Priority Level
+	IPC15bits.DMA5IP  = 5;			// ADC Interrupt
 	IPC0bits.T1IP    = 4;			// Timer 1 used by Ethernet (Default value = 2)
 	IPC6bits.T4IP    = 3;			// Timer 4 Used by Asser
 }
@@ -114,6 +115,29 @@ void InitPorts()
 	//Confguration des ports pour le module UART2 (LIDAR)
 	RPOR12bits.RP25R = 0b00011;     //TX RP24
     RPINR18 = 0b11000;              //RX RP25
+
+	//Gestion balise
+	RPINR7bits.IC1R = 4;  	// Capteur effet hall
+	RPINR7bits.IC2R = 17;  	// Capteur laser 1
+	RPINR10bits.IC7R = 18; 	// Capteur laser 2
+}
+
+void Init_Timer2(void)		
+{
+	T2CONbits.TON 	= 0;	//Stops the timer
+	T2CONbits.TSIDL = 0;
+	T2CONbits.TGATE = 0;
+	T2CONbits.TCS	= 0;
+	T2CONbits.T32	= 0;
+	T2CONbits.TCKPS = 0b10; //Prescaler set to 1:64
+	
+	TMR2 = 0; 				//Clear timer register
+	PR2  = 1;				//Load the period value (1 = 3.2us)
+
+	IFS0bits.T2IF = 0; 		//Clear Timer2 Interrupt Flag
+	IEC0bits.T2IE = 1; 		//Enable Timer2 interrupt
+	T2CONbits.TON = 1;		//Timer enabled
+	
 }
 
 void Init_Timer4(void)

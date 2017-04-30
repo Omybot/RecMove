@@ -4,7 +4,6 @@ void InitPWM(void);
 void InitQEI(void);
 
 void Init_Timer2(void);
-void Init_Timer5(void);
 void Init_Timer4(void);
 void InitUART2(void);
 void InitADC(void);

@@ -9,6 +9,7 @@
 
 #define UART_BUFFER_SIZE 100
 
+extern unsigned int pwm_balise;
 extern 	unsigned char flag_envoi_uart,buffer_envoi_uart[UART_BUFFER_SIZE],ptr_write_buffer_uart;
 extern unsigned char Demande_lidar;
 extern unsigned int positions_xy[2][300];
@@ -166,7 +167,7 @@ Trame Couleur_Equipe(void)
 
 	Couleur[0] = 0xC1;
 	Couleur[1] = CMD_REPONSE_COULEUR_EQUIPE;
-	Couleur[2] = PORTBbits.RB4;
+	Couleur[2] = PORTAbits.RA7;
 
 	Etat_Couleur_Equipe.message = Couleur;
 	
@@ -771,6 +772,18 @@ Trame AnalyseTrame(Trame t)
 			positions_xy[1][0]=pos_y;
 			Deplacement_Polaire();			
 		break;
+		case CMD_DEMANDE_LIDAR:
+			Demande_lidar=1;
+			break;
+		case CMD_MOTEUR_POSITION:
+			switch (t.message[2])
+			{
+				case ID_MOTEUR_BALISE:
+					pwm_balise = t.message[3] * 256 + t.message[4];
+					//pwm(ID_MOTEUR_BALISE,(double)param1);
+					break;	
+			}
+			break;			
 	}
 	return retour;
 }

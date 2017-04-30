@@ -15,6 +15,8 @@
 #include "OurFiles/FonctionsUc.h"
 
 #define UART_BUFFER_SIZE	100
+#define IDCAPTEUR_BAS 0
+#define IDCAPTEUR_HAUT 1
 
 // Bits configuration
 _FOSCSEL(FNOSC_FRC)
@@ -27,6 +29,25 @@ APP_CONFIG AppConfig;
 
 static void InitAppConfig(void);
 
+unsigned int periode_tour;
+char Fin_de_tour, Fin_d_angle_bas = 0,Fin_d_angle_haut = 0;
+char capteurHautPrec = 0;
+char capteurBasPrec = 0;
+char oldMagnet = 0;
+unsigned char nombre_angles[2]; // n angles (8 maxi)
+unsigned char buffer_angles[2][2*8]; // debut_1_MSB; debut_1_LSB; fin_1_MSB; fin_1_LSB; debut_2_MSB; debut_2_LSB; fin_2_MSB; fin_2_LSB; ...;debut_n_MSB; debut_n_LSB; fin_n_MSB; fin_n_LSB; 
+unsigned char nombre_fronts[2]; // n fronts (8 maxi)
+unsigned int buffer_fronts[2][8]; // Valeurs bruts TMR2
+unsigned int buffer_fronts_temp[2][8]; // Valeurs bruts TMR2
+unsigned int front_rapide[2][2];
+unsigned int ptr_fronts_bas; // ptr pour l'enregistrement
+unsigned int ptr_fronts_haut; // 
+unsigned int hall_front;
+unsigned int motor_speed,Cpt_20ms=0;
+float angle;
+
+
+unsigned int cpt_balise,pwm_balise;
 extern unsigned int ADC_Results[8],cpu_status;
 extern double cons_pos[N];
 extern double real_pos[N];
@@ -81,7 +102,7 @@ int main(void)
 	Couleur_Equipe.nbChar = 3;
 	Couleur[0] = 0xC1;
 	Couleur[1] = CMD_REPONSE_COULEUR_EQUIPE;
-	Couleur[2] = PORTBbits.RB4;
+	Couleur[2] = PORTAbits.RA7;
 	Couleur_Equipe.message = Couleur;
 
 	Trame envoiFin;
@@ -142,6 +163,21 @@ int main(void)
 	envoiTest.nbChar = 19;
 	// V V [LF] 0 0 P [LF] 
 	
+		Trame envoiBalise;
+	static BYTE messbalise[60];
+	messbalise[0] = 0xC4;
+	messbalise[1] = CMD_REPONSE_CAPTEUR;
+	messbalise[2] = ID_CAPTEUR_BALISE;
+	envoiBalise.message = messbalise;
+	envoiBalise.nbChar = 30;
+
+	Trame envoiBaliserapide;
+	static BYTE messbaliserapide[7];
+	messbaliserapide[0] = 0xC4;
+	messbaliserapide[1] = CMD_REPONSE_CAPTEUR;
+	envoiBaliserapide.message = messbaliserapide;
+	envoiBaliserapide.nbChar = 7;
+
 
 	InitClk(); 		// Initialisation de l'horloge
 	InitPorts(); 	// Initialisation des ports E/S
@@ -154,8 +190,9 @@ int main(void)
 	MOT4L = 0;
 	MOT4H = 0;
 	
-	LATAbits.LATA8 = 0; 
+	LATAbits.LATA8 = 0; // (moteur balise)
 
+	Init_Timer2();	// Initialisation Timer2
 	Init_Timer4();	// Initialisation Timer4
 	InitQEI(); 		// Initialisation des entrées en quadrature
 	InitPWM();		// Configuration du module PWM 
@@ -182,11 +219,130 @@ int main(void)
 	InitADC();
 	InitDMA();
 
+		// Initialize the Input Capture Module
+	IC1CONbits.ICM = 0b00; // Disable Input Capture 1 module
+	IC1CONbits.ICTMR = 1; // Select Timer2 as the IC1 Time base
+	IC1CONbits.ICI = 0b00; // Interrupt on every capture event
+	IC1CONbits.ICM = 0b011; // Generate capture event on every Rising edge
+	// Enable Capture Interrupt And Timer2
+	IPC0bits.IC1IP = 3; // Setup IC1 interrupt priority level
+	IFS0bits.IC1IF = 0; // Clear IC1 Interrupt Status Flag
+	IEC0bits.IC1IE = 1; // Enable IC1 interrupt
+	// Initialize the Input Capture Module
+	IC2CONbits.ICM = 0b00; // Disable Input Capture 1 module
+	IC2CONbits.ICTMR = 1; // Select Timer2 as the IC1 Time base
+	IC2CONbits.ICI = 0b00; // Interrupt on every capture event
+	IC2CONbits.ICM = 0b011; // Generate capture event on every edge // change
+	// Enable Capture Interrupt And Timer2
+	IPC1bits.IC2IP = 2; // Setup IC1 interrupt priority level
+	IFS0bits.IC2IF = 0; // Clear IC1 Interrupt Status Flag
+	IEC0bits.IC2IE = 1; // Enable IC1 interrupt
+	// Initialize the Input Capture Module
+	IC7CONbits.ICM = 0b00; // Disable Input Capture 1 module
+	IC7CONbits.ICTMR = 1; // Select Timer2 as the IC1 Time base
+	IC7CONbits.ICI = 0b00; // Interrupt on every capture event
+	IC7CONbits.ICM = 0b011; // Generate capture event on every edge // change
+	// Enable Capture Interrupt And Timer2
+	IPC5bits.IC7IP = 1; // Setup IC1 interrupt priority level
+	IFS1bits.IC7IF = 0; // Clear IC1 Interrupt Status Flag
+	IEC1bits.IC7IE = 1; // Enable IC1 interrupt
+
+
 	DelayMs(500); 
 
     
 	while(1)
   	{	
+		// Gestion Balise
+		if(Fin_d_angle_bas == 1)
+		{
+			Fin_d_angle_bas = 0;
+			messbaliserapide[0] = 0xC4;
+			messbaliserapide[1] = CMD_REPONSE_CAPTEUR;
+			messbaliserapide[2] = ID_CAPTEUR_BALISE_1;
+
+			envoiBaliserapide.nbChar = 3;
+			for(i=0;i<2;i++)
+			{
+				angle = (float)(front_rapide[IDCAPTEUR_BAS][i]) / (float)(periode_tour) * 36000;
+				messbaliserapide[envoiBaliserapide.nbChar+i*2] = (unsigned char)((unsigned int)angle >> 8) & 0xFF;
+				messbaliserapide[envoiBaliserapide.nbChar+1+i*2] = (unsigned char)((unsigned int)angle     ) & 0xFF;
+			}
+			envoiBaliserapide.nbChar = 7;	
+			//EnvoiUserUdp(envoiBaliserapide);
+		}
+
+		if(Fin_d_angle_haut == 1)
+		{
+			Fin_d_angle_haut = 0;
+			messbaliserapide[0] = 0xC4;
+			messbaliserapide[1] = CMD_REPONSE_CAPTEUR;
+			messbaliserapide[2] = ID_CAPTEUR_BALISE_2;
+
+			envoiBaliserapide.nbChar = 3;
+			for(i=0;i<2;i++)
+			{
+				angle = (float)(front_rapide[IDCAPTEUR_HAUT][i]) / (float)(periode_tour) * 36000;
+				messbaliserapide[envoiBaliserapide.nbChar+i*2] = (unsigned char)((unsigned int)angle >> 8) & 0xFF;
+				messbaliserapide[envoiBaliserapide.nbChar+1+i*2] = (unsigned char)((unsigned int)angle     ) & 0xFF;
+			}
+			envoiBaliserapide.nbChar = 7;	
+			//EnvoiUserUdp(envoiBaliserapide);
+		}
+
+
+		// Gestion Balise
+		if(Fin_de_tour == 1)
+		{
+			Fin_de_tour = 0;
+			
+			for(i=0;i<nombre_angles[IDCAPTEUR_HAUT];i++)
+			{
+				angle = (float)(buffer_fronts[IDCAPTEUR_HAUT][i]) / (float)(periode_tour) * 36000;
+				buffer_angles[IDCAPTEUR_HAUT][2*i]   = (unsigned char)((unsigned int)angle >> 8) & 0xFF;
+				buffer_angles[IDCAPTEUR_HAUT][2*i+1] = (unsigned char)((unsigned int)angle     ) & 0xFF;
+			}
+			for(i=0;i<nombre_angles[IDCAPTEUR_BAS];i++)
+			{
+				angle = (float)(buffer_fronts[IDCAPTEUR_BAS][i]) / (float)(periode_tour) * 36000;
+				buffer_angles[IDCAPTEUR_BAS][2*i]   = (unsigned char)((unsigned int)angle >> 8) & 0xFF;
+				buffer_angles[IDCAPTEUR_BAS][2*i+1] = (unsigned char)((unsigned int)angle     ) & 0xFF;
+			}
+
+			messbalise[0] = 0xC4;
+			messbalise[1] = CMD_REPONSE_CAPTEUR;
+			messbalise[2] = ID_CAPTEUR_BALISE;
+			
+
+			messbalise[3] = (periode_tour >> 8) & 0x00FF;
+			messbalise[4] = periode_tour & 0x00FF;
+			
+			
+			messbalise[5] = nombre_angles[IDCAPTEUR_HAUT];
+			messbalise[6] = nombre_angles[IDCAPTEUR_BAS];
+       		
+			envoiBalise.nbChar = 7;
+			
+       		for(i = 0; i < nombre_angles[IDCAPTEUR_HAUT]; i++)
+			{
+				messbalise[envoiBalise.nbChar+i*2] = buffer_angles[IDCAPTEUR_HAUT][2*i];	//MSB
+       			messbalise[envoiBalise.nbChar+1+i*2] = buffer_angles[IDCAPTEUR_HAUT][2*i+1]; //LSB
+			}
+			
+			envoiBalise.nbChar += nombre_angles[IDCAPTEUR_HAUT]*2;
+			
+			for(i = 0; i < nombre_angles[IDCAPTEUR_BAS]; i++)
+			{
+				messbalise[envoiBalise.nbChar+i*2] = buffer_angles[IDCAPTEUR_BAS][2*i];	 //MSB
+       			messbalise[envoiBalise.nbChar+1+i*2] = buffer_angles[IDCAPTEUR_BAS][2*i+1]; //LSB
+			}
+			
+			envoiBalise.nbChar += nombre_angles[IDCAPTEUR_BAS]*2;
+			
+			EnvoiUserUdp(envoiBalise);
+			envoiBalise.nbChar = 0;
+		}
+		// Fin gestion balise
 		//Fin Gestion LIDAR	
 		if(Demande_lidar)	
 		{
@@ -218,7 +374,7 @@ int main(void)
 			}
 			timeout_lidar=0;
 			envoiUART.nbChar = nbr_char_to_send+3;
-			EnvoiUserUdp(envoiUART);
+			EnvoiUserUdp(envoiUART); // Bon ok 1 pt pour kryss
 			ptr_read_buffer_uart_rec = save_write;
 		}			
 
@@ -230,16 +386,16 @@ int main(void)
 				ptr_read_buffer_uart=0;
 		}
 		//Fin Gestion LIDAR	
-	  	if(PORTAbits.RA8 && jackAvant)
+	  	if(PORTAbits.RA10 && jackAvant)
 	  	{
 		  	EnvoiUserUdp (Jack);
 		  	jackAvant = 0;
 		}
-		if(etatCouleur != PORTBbits.RB4)
+		if(etatCouleur != PORTAbits.RA7)
 		{
-			Couleur[2] = PORTBbits.RB4;
+			Couleur[2] = PORTAbits.RA7;
   			EnvoiUserUdp (Couleur_Equipe);
-  			etatCouleur = PORTBbits.RB4;
+  			etatCouleur = PORTAbits.RA7;
   		}
 		if(flag_envoi) 
 		{	
@@ -486,6 +642,7 @@ void __attribute__ ((interrupt, no_auto_psv)) _T4Interrupt(void)
 
 	flag = 0;
 	courrier = 1;
+	cpt_balise=0;
 	motor_flag = Motors_Task(); // Si prend trop de ressource sur l'udp, inclure motortask dans le main	
 		
 	if(cpt_envoi_position++>prd_envoi_position)
@@ -529,4 +686,79 @@ void __attribute__((interrupt,auto_psv)) _U2RXInterrupt(void)
 			ptr_write_buffer_uart_rec=0;
 	}
 			
+}
+
+void __attribute__((__interrupt__,__auto_psv__)) _T2Interrupt(void) // 3.2µs (312 itérations sur 1ms)
+{
+	if(cpt_balise<10000)
+		cpt_balise++;
+	if(cpt_balise<pwm_balise)
+		LATAbits.LATA8 = 1;
+	else
+		LATAbits.LATA8 = 0;
+	
+	IFS0bits.T2IF = 0; 		//Clear Timer1 Interrupt flag
+}
+
+void __attribute__((interrupt, no_auto_psv)) _IC1Interrupt(void)
+{
+	unsigned char i;
+	TMR2=0;
+	IC2CONbits.ICM = 0b011;
+	IC7CONbits.ICM = 0b011;
+	periode_tour = IC1BUF;
+	
+	IFS0bits.IC1IF=0;
+
+	nombre_angles[IDCAPTEUR_HAUT] = ptr_fronts_haut;
+	nombre_angles[IDCAPTEUR_BAS] = ptr_fronts_bas;
+
+	for(i=0;i<nombre_angles[IDCAPTEUR_HAUT];i++)
+	{
+		buffer_fronts[IDCAPTEUR_HAUT][i] = 	buffer_fronts_temp[IDCAPTEUR_HAUT][i];
+	}
+	for(i=0;i<nombre_angles[IDCAPTEUR_BAS];i++)
+	{
+		buffer_fronts[IDCAPTEUR_BAS][i] = 	buffer_fronts_temp[IDCAPTEUR_BAS][i];
+	}
+	
+	ptr_fronts_haut=0;
+	ptr_fronts_bas=0;
+	Fin_de_tour=1;
+	
+}
+
+void __attribute__((interrupt, no_auto_psv)) _IC2Interrupt(void)
+{
+	buffer_fronts_temp[IDCAPTEUR_BAS][ptr_fronts_bas]=IC2BUF;
+	if(ptr_fronts_bas < 8) ptr_fronts_bas++;
+	 
+	if(ptr_fronts_bas %2 == 0)
+	{
+		front_rapide[IDCAPTEUR_BAS][1] = buffer_fronts_temp[IDCAPTEUR_BAS][ptr_fronts_bas-1]; // Front descendant
+		Fin_d_angle_bas = 1;
+	}
+	else
+	{
+		front_rapide[IDCAPTEUR_BAS][0] = buffer_fronts_temp[IDCAPTEUR_BAS][ptr_fronts_bas-1]; // Front montant
+	}
+	IC2CONbits.ICM = 0b001;
+	IFS0bits.IC2IF=0;
+}
+
+void __attribute__((interrupt, no_auto_psv)) _IC7Interrupt(void)
+{
+	buffer_fronts_temp[IDCAPTEUR_HAUT][ptr_fronts_haut]=IC7BUF;		
+	if(ptr_fronts_haut < 8) ptr_fronts_haut++;
+	if(ptr_fronts_haut %2 == 0)
+	{
+		front_rapide[IDCAPTEUR_HAUT][1] = buffer_fronts_temp[IDCAPTEUR_HAUT][ptr_fronts_haut-1]; // Front descendant
+		Fin_d_angle_haut = 1;
+	}
+	else
+	{
+		front_rapide[IDCAPTEUR_HAUT][0] = buffer_fronts_temp[IDCAPTEUR_HAUT][ptr_fronts_haut-1]; // Front montant
+	}
+	IC7CONbits.ICM = 0b001;
+	IFS1bits.IC7IF=0;
 }
