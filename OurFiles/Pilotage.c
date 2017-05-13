@@ -65,7 +65,7 @@ Trame Retour_Valeurs_Analogiques(void)
 	Etat_Valeurs.nbChar = 14;
 	
 
-	Valeurs[0] = 0xC1;
+	Valeurs[0] = UDP_ID;
 	Valeurs[1] = CMD_REPONSE_VALEURS_ANALOGIQUES;
 	Valeurs[2] = ADC_Results[0] >> 8;
 	Valeurs[3] = ADC_Results[0] & 0xFF;	
@@ -165,7 +165,7 @@ Trame Couleur_Equipe(void)
 	static BYTE Couleur[3];
 	Etat_Couleur_Equipe.nbChar = 3;
 
-	Couleur[0] = 0xC1;
+	Couleur[0] = UDP_ID;
 	Couleur[1] = CMD_REPONSE_COULEUR_EQUIPE;
 	Couleur[2] = PORTAbits.RA7;
 
@@ -180,7 +180,7 @@ Trame Presence_Jack(void)
 	static BYTE Jack[3];
 	Etat_Jack.nbChar = 3;
 
-	Jack[0] = 0xC1;
+	Jack[0] = UDP_ID;
 	Jack[1] = CMD_REPONSE_PRESENCE_JACK;
 	Jack[2] = !PORTAbits.RA8;	
 
@@ -217,7 +217,7 @@ Trame StatusMonitor(void)
 	static BYTE tableau[512];
 	unsigned char i,current_send_ptr,nbr_to_send;
 	
-	tableau[0] = 0xC1; // identifiant trame
+	tableau[0] = UDP_ID; // identifiant trame
 	tableau[1] = CMD_REPONSE_BUFF_STATUS;
 
 	
@@ -267,7 +267,7 @@ Trame PilotePositionXYT()
 	static BYTE tableau[8];
 	trame.nbChar = 8;
 	
-	tableau[0] = 0xC1;
+	tableau[0] = UDP_ID;
 	tableau[1] = CMD_RETOURPOSITION;
 	tableau[2] = (int)(pos_x * 10)>>8;
 	tableau[3] = (int)(pos_x * 10)&0x00FF;
@@ -303,8 +303,8 @@ Trame ReponseEcho()
 	static BYTE tableau[2];
 	trame.nbChar = 2;
 
-	tableau[0] = 0xC1;
-	tableau[1] = 0xF5;
+	tableau[0] = UDP_ID;
+	tableau[1] = TRAME_TEST_CONNEXION;
 	
 	trame.message = tableau;
 	
@@ -455,7 +455,7 @@ Trame PiloteGetBuffPosition()
 	static BYTE tableau[512];
 	unsigned char i,current_send_ptr,nbr_to_send;
 	
-	tableau[0] = 0xC1; // identifiant trame
+	tableau[0] = UDP_ID; // identifiant trame
 	tableau[1] = CMD_REPONSE_BUFF_POSITION;
 	nbr_to_send = buff_position_ptr - last_send_ptr;
 	last_send_ptr=buff_position_ptr;
@@ -538,7 +538,7 @@ int PiloteStop(unsigned char stopmode)
 	/*int distanceRestante;
 	Trame envoiReste;
 	static BYTE messReste[2];
-	messReste[0] = 0xC1;
+	messReste[0] = UDP_ID;
 	messReste[1] = 0x60;
 	envoiReste.nbChar = 4;
 	*/
@@ -582,8 +582,8 @@ Trame AnalyseTrame(Trame t)
 	
 	retour = t;
 
-	// Les messages ne commencant pas par 0xC1 ne nous sont pas adressés (RecMove)
-	if(t.message[0] != 0xC1)
+	// Les messages ne commencant pas par UDP_ID ne nous sont pas adressés (RecMove)
+	if(t.message[0] != UDP_ID)
 		return t;
 
 	switch(t.message[1])
@@ -703,7 +703,7 @@ Trame AnalyseTrame(Trame t)
 			kd_vit = (double)(t.message[6]*256+t.message[7]);			// D
 		break;
 
-		case CMD_ECHO:
+		case TRAME_TEST_CONNEXION:
 			bridage = t.message[2];
 			retour = ReponseEcho();
 		break;

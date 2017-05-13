@@ -133,3 +133,7 @@ Trame AnalyseTrame(Trame t);
 #define ID_CAPTEUR_BALISE 				0x01
 #define ID_CAPTEUR_BALISE_1				0x02
 #define ID_CAPTEUR_BALISE_2				0x03
+
+
+//Diagnostic
+#define TRAME_TEST_CONNEXION 0xF0
