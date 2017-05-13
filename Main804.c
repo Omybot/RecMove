@@ -128,7 +128,7 @@ int main(void)
 
 	Trame envoiUART;
 	static BYTE messUART[250];
-	messUART[0] = 0xC4;
+	messUART[0] = UDP_ID;
 	messUART[1] = CMD_REPONSE_LIDAR;//CMD???;
 	messUART[2] = 0xFE;
 	envoiUART.message = messUART;
@@ -137,8 +137,8 @@ int main(void)
 	
 	Trame envoiTest;
 	static BYTE messTest[19];
-	messTest[0] = 0xC4;
-	messTest[1] = 0xC4;
+	messTest[0] = UDP_ID;
+	messTest[1] = UDP_ID;
 	messTest[2] = 7;
 	messTest[3] = 'M';
 	messTest[4] = 'S';
@@ -165,16 +165,16 @@ int main(void)
 	
 		Trame envoiBalise;
 	static BYTE messbalise[60];
-	messbalise[0] = 0xC4;
-	messbalise[1] = CMD_REPONSE_CAPTEUR;
-	messbalise[2] = ID_CAPTEUR_BALISE;
+	messbalise[0] = UDP_ID;
+	messbalise[1] = TRAME_DETECTION_BALISE;
+	messbalise[2] = ID_BALISE;
 	envoiBalise.message = messbalise;
 	envoiBalise.nbChar = 30;
 
 	Trame envoiBaliserapide;
 	static BYTE messbaliserapide[7];
-	messbaliserapide[0] = 0xC4;
-	messbaliserapide[1] = CMD_REPONSE_CAPTEUR;
+	messbaliserapide[0] = UDP_ID;
+	messbaliserapide[1] = TRAME_DETECTION_BALISE_RAPIDE;
 	envoiBaliserapide.message = messbaliserapide;
 	envoiBaliserapide.nbChar = 7;
 
@@ -219,30 +219,37 @@ int main(void)
 	InitADC();
 	InitDMA();
 
+	// Init Timer3
+	T3CONbits.TCKPS = 0b11;	// 1:256 Prescaler
+	PR3 = 0xFFFF;			// Time to autoreload
+	IFS0bits.T3IF = 0;		// Interrupt flag cleared
+	IEC0bits.T3IE = 0;		// Interrupt disabled
+	T3CONbits.TON = 1;		// Timer enabled
+
 		// Initialize the Input Capture Module
 	IC1CONbits.ICM = 0b00; // Disable Input Capture 1 module
-	IC1CONbits.ICTMR = 1; // Select Timer2 as the IC1 Time base
+	IC1CONbits.ICTMR = 0; // Select Timer3 as the IC1 Time base
 	IC1CONbits.ICI = 0b00; // Interrupt on every capture event
 	IC1CONbits.ICM = 0b011; // Generate capture event on every Rising edge
-	// Enable Capture Interrupt And Timer2
+	// Enable Capture Interrupt And Timer3
 	IPC0bits.IC1IP = 3; // Setup IC1 interrupt priority level
 	IFS0bits.IC1IF = 0; // Clear IC1 Interrupt Status Flag
 	IEC0bits.IC1IE = 1; // Enable IC1 interrupt
 	// Initialize the Input Capture Module
 	IC2CONbits.ICM = 0b00; // Disable Input Capture 1 module
-	IC2CONbits.ICTMR = 1; // Select Timer2 as the IC1 Time base
+	IC2CONbits.ICTMR = 0; // Select Timer3 as the IC1 Time base
 	IC2CONbits.ICI = 0b00; // Interrupt on every capture event
 	IC2CONbits.ICM = 0b011; // Generate capture event on every edge // change
-	// Enable Capture Interrupt And Timer2
+	// Enable Capture Interrupt And Timer3
 	IPC1bits.IC2IP = 2; // Setup IC1 interrupt priority level
 	IFS0bits.IC2IF = 0; // Clear IC1 Interrupt Status Flag
 	IEC0bits.IC2IE = 1; // Enable IC1 interrupt
 	// Initialize the Input Capture Module
 	IC7CONbits.ICM = 0b00; // Disable Input Capture 1 module
-	IC7CONbits.ICTMR = 1; // Select Timer2 as the IC1 Time base
+	IC7CONbits.ICTMR = 0; // Select Timer3 as the IC1 Time base
 	IC7CONbits.ICI = 0b00; // Interrupt on every capture event
 	IC7CONbits.ICM = 0b011; // Generate capture event on every edge // change
-	// Enable Capture Interrupt And Timer2
+	// Enable Capture Interrupt And Timer3
 	IPC5bits.IC7IP = 1; // Setup IC1 interrupt priority level
 	IFS1bits.IC7IF = 0; // Clear IC1 Interrupt Status Flag
 	IEC1bits.IC7IE = 1; // Enable IC1 interrupt
@@ -257,7 +264,7 @@ int main(void)
 		if(Fin_d_angle_bas == 1)
 		{
 			Fin_d_angle_bas = 0;
-			messbaliserapide[0] = 0xC4;
+			messbaliserapide[0] = UDP_ID;
 			messbaliserapide[1] = CMD_REPONSE_CAPTEUR;
 			messbaliserapide[2] = ID_CAPTEUR_BALISE_1;
 
@@ -275,7 +282,7 @@ int main(void)
 		if(Fin_d_angle_haut == 1)
 		{
 			Fin_d_angle_haut = 0;
-			messbaliserapide[0] = 0xC4;
+			messbaliserapide[0] = UDP_ID;
 			messbaliserapide[1] = CMD_REPONSE_CAPTEUR;
 			messbaliserapide[2] = ID_CAPTEUR_BALISE_2;
 
@@ -309,19 +316,19 @@ int main(void)
 				buffer_angles[IDCAPTEUR_BAS][2*i+1] = (unsigned char)((unsigned int)angle     ) & 0xFF;
 			}
 
-			messbalise[0] = 0xC4;
-			messbalise[1] = CMD_REPONSE_CAPTEUR;
-			messbalise[2] = ID_CAPTEUR_BALISE;
+			messbalise[0] = UDP_ID;
+			messbalise[1] = TRAME_DETECTION_BALISE;
+			messbalise[2] = ID_BALISE;
 			
 
-			messbalise[3] = (periode_tour >> 8) & 0x00FF;
-			messbalise[4] = periode_tour & 0x00FF;
+			messbalise[2+1] = (periode_tour >> 8) & 0x00FF;
+			messbalise[3+1] = periode_tour & 0x00FF;
 			
 			
-			messbalise[5] = nombre_angles[IDCAPTEUR_HAUT];
-			messbalise[6] = nombre_angles[IDCAPTEUR_BAS];
+			messbalise[4+1] = nombre_angles[IDCAPTEUR_HAUT];
+			messbalise[5+1] = nombre_angles[IDCAPTEUR_BAS];
        		
-			envoiBalise.nbChar = 7;
+			envoiBalise.nbChar = 6+1;
 			
        		for(i = 0; i < nombre_angles[IDCAPTEUR_HAUT]; i++)
 			{
@@ -703,7 +710,7 @@ void __attribute__((__interrupt__,__auto_psv__)) _T2Interrupt(void) // 3.2µs (31
 void __attribute__((interrupt, no_auto_psv)) _IC1Interrupt(void)
 {
 	unsigned char i;
-	TMR2=0;
+	TMR3=0;
 	IC2CONbits.ICM = 0b011;
 	IC7CONbits.ICM = 0b011;
 	periode_tour = IC1BUF;

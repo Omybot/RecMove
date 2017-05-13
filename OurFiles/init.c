@@ -137,7 +137,6 @@ void Init_Timer2(void)
 	IFS0bits.T2IF = 0; 		//Clear Timer2 Interrupt Flag
 	IEC0bits.T2IE = 1; 		//Enable Timer2 interrupt
 	T2CONbits.TON = 1;		//Timer enabled
-	
 }
 
 void Init_Timer4(void)

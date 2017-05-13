@@ -125,12 +125,15 @@ Trame AnalyseTrame(Trame t);
 #define CMD_DEMANDE_LIDAR				0xA0
 #define CMD_REPONSE_LIDAR				0xA1
 
+#define TRAME_DETECTION_BALISE			0xE4
+#define TRAME_DETECTION_BALISE_RAPIDE	0xE5
+
 //2017 à trier
 #define ID_MOTEUR_BALISE				0x02
 #define CMD_MOTEUR_POSITION				0x66
 #define CMD_DEMANDE_CAPTEUR				0x50
 #define CMD_REPONSE_CAPTEUR				0x51
-#define ID_CAPTEUR_BALISE 				0x01
+#define ID_BALISE 						0x01
 #define ID_CAPTEUR_BALISE_1				0x02
 #define ID_CAPTEUR_BALISE_2				0x03
 
