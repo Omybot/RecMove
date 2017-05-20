@@ -780,7 +780,7 @@ Trame AnalyseTrame(Trame t)
 			{
 				case ID_MOTEUR_BALISE:
 					pwm_balise = t.message[3] * 256 + t.message[4];
-					pwm(ID_MOTEUR_BALISE,(double)param1);
+					//pwm(ID_MOTEUR_BALISE,(double)param1);
 					break;	
 			}
 			break;			
