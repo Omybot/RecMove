@@ -772,7 +772,7 @@ Trame AnalyseTrame(Trame t)
 			positions_xy[1][0]=pos_y;
 			Deplacement_Polaire();			
 		break;
-		case CMD_DEMANDE_LIDAR:
+		case TRAME_UART2_ENVOI:
 			Demande_lidar=1;
 			break;
 		case CMD_MOTEUR_POSITION:

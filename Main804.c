@@ -29,6 +29,8 @@ APP_CONFIG AppConfig;
 
 static void InitAppConfig(void);
 
+extern double pos_x,pos_y,pos_teta;
+
 unsigned int periode_tour;
 char Fin_de_tour, Fin_d_angle_bas = 0,Fin_d_angle_haut = 0;
 char capteurHautPrec = 0;
@@ -61,14 +63,13 @@ unsigned int datalogger_counter=0,flag=0,courrier=0,PID_ressource_used;
 unsigned char flag_envoi=0,flag_blocage=0,flag_calage=0;
 
 //LIDAR
-unsigned char Demande_lidar = 0;
+unsigned char Demande_lidar = 0,offset_premiere_trame=0;
 unsigned char timeout_lidar=0;
 unsigned char nbr_char_to_send=0,Buffer_passerelle_udpuart[250];
 unsigned char ptr_write_buffer_uart_rec=0,save_write;
 unsigned char ptr_read_buffer_uart_rec=0,save_read;
 unsigned char flag_envoi_uart,buffer_envoi_uart[UART_BUFFER_SIZE],ptr_write_buffer_uart;
-unsigned char ptr_read_buffer_uart=0,ptr_write_buffer_uart=0;
-unsigned char buffer_envoi_uart[UART_BUFFER_SIZE];
+unsigned char ptr_read_buffer_uart=0;
 
 
 void _ISR __attribute__((__no_auto_psv__)) _AddressError(void)
@@ -129,8 +130,8 @@ int main(void)
 	Trame envoiUART;
 	static BYTE messUART[250];
 	messUART[0] = UDP_ID;
-	messUART[1] = CMD_REPONSE_LIDAR;//CMD???;
-	messUART[2] = 0xFE;
+	messUART[1] = TRAME_UART2_RECEPTION;
+	messUART[2] = ID_HOKUYO_SOL;
 	envoiUART.message = messUART;
 	envoiUART.nbChar = 53;
 	
@@ -257,9 +258,11 @@ int main(void)
 
 	DelayMs(500); 
 
-    
+	
+
 	while(1)
   	{	
+    		
 		// Gestion Balise
 		if(Fin_d_angle_bas == 1)
 		{
@@ -320,15 +323,21 @@ int main(void)
 			messbalise[1] = TRAME_DETECTION_BALISE;
 			messbalise[2] = ID_BALISE;
 			
+			messbalise[3] = (int)(pos_x * 10)>>8;
+			messbalise[4] = (int)(pos_x * 10)&0x00FF;
+			messbalise[5] = (int)(pos_y * 10)>>8;
+			messbalise[6] = (int)(pos_y * 10)&0x00FF;
+			messbalise[7] = (unsigned int)(pos_teta*36000/(2*PI)+18000)>>8;
+			messbalise[8] = (unsigned int)(pos_teta*36000/(2*PI)+18000)&0x00FF;
 
-			messbalise[2+1] = (periode_tour >> 8) & 0x00FF;
-			messbalise[3+1] = periode_tour & 0x00FF;
+			messbalise[2+1+6] = (periode_tour >> 8) & 0x00FF;
+			messbalise[3+1+6] = periode_tour & 0x00FF;
 			
 			
-			messbalise[4+1] = nombre_angles[IDCAPTEUR_HAUT];
-			messbalise[5+1] = nombre_angles[IDCAPTEUR_BAS];
+			messbalise[4+1+6] = nombre_angles[IDCAPTEUR_HAUT];
+			messbalise[5+1+6] = nombre_angles[IDCAPTEUR_BAS];
        		
-			envoiBalise.nbChar = 6+1;
+			envoiBalise.nbChar = 6+1+6;
 			
        		for(i = 0; i < nombre_angles[IDCAPTEUR_HAUT]; i++)
 			{
@@ -355,6 +364,13 @@ int main(void)
 		{
 			Demande_lidar=0;
 			EnvoiUART(envoiTest);
+			messUART[3] = (int)(pos_x * 10)>>8;
+			messUART[4] = (int)(pos_x * 10)&0x00FF;
+			messUART[5] = (int)(pos_y * 10)>>8;
+			messUART[6] = (int)(pos_y * 10)&0x00FF;
+			messUART[7] = (unsigned int)(pos_teta*36000/(2*PI)+18000)>>8;
+			messUART[8] = (unsigned int)(pos_teta*36000/(2*PI)+18000)&0x00FF;
+			offset_premiere_trame=6;
 		}
 		
 		save_write = ptr_write_buffer_uart_rec;
@@ -375,12 +391,14 @@ int main(void)
 		{	
 			for(i=0;i<nbr_char_to_send;i++)
 			{
-				messUART[i+3]=Buffer_passerelle_udpuart[save_read++];
+				messUART[i+3+offset_premiere_trame]=Buffer_passerelle_udpuart[save_read++];
 				if(save_read>240)
 					save_read=0;
 			}
+			
 			timeout_lidar=0;
-			envoiUART.nbChar = nbr_char_to_send+3;
+			envoiUART.nbChar = nbr_char_to_send+3+offset_premiere_trame;
+			offset_premiere_trame=0;
 			EnvoiUserUdp(envoiUART); // Bon ok 1 pt pour kryss
 			ptr_read_buffer_uart_rec = save_write;
 		}			
@@ -650,6 +668,7 @@ void __attribute__ ((interrupt, no_auto_psv)) _T4Interrupt(void)
 	flag = 0;
 	courrier = 1;
 	cpt_balise=0;
+	if(timeout_lidar<200) timeout_lidar++;
 	motor_flag = Motors_Task(); // Si prend trop de ressource sur l'udp, inclure motortask dans le main	
 		
 	if(cpt_envoi_position++>prd_envoi_position)

@@ -89,7 +89,7 @@ void InitPorts()
 	TRISBbits.TRISB14=0; // MOT4_PWMH - Moteurs
 	TRISBbits.TRISB15=0; // MOT4_PWML - Moteurs
 	
-	TRISCbits.TRISC0=1; // RC0 - Mezzanine
+	TRISCbits.TRISC0=0; // RC0 - Mezzanine
 	TRISCbits.TRISC1=1; // RC1 - Mezzanine
 	TRISCbits.TRISC2=1; // RC2 - Mezzanine
 	TRISCbits.TRISC3=0; // SCK1 - Ethernet MSCK
@@ -113,8 +113,8 @@ void InitPorts()
 	RPINR20bits.SDI1R = 21     ; // SDI1 		<==> RP21 RC5
 
 	//Confguration des ports pour le module UART2 (LIDAR)
-	RPOR12bits.RP25R = 0b00011;     //TX RP24
-    RPINR18 = 0b11000;              //RX RP25
+	RPOR8bits.RP16R = 0b00101;	//TX RP16
+    RPINR19bits.U2RXR = 3; //RX RP3
 
 	//Gestion balise
 	RPINR7bits.IC1R = 4;  	// Capteur effet hall
