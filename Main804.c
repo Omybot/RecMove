@@ -323,21 +323,21 @@ int main(void)
 			messbalise[1] = TRAME_DETECTION_BALISE;
 			messbalise[2] = ID_BALISE;
 			
-			messbalise[3] = (int)(pos_x * 10)>>8;
-			messbalise[4] = (int)(pos_x * 10)&0x00FF;
-			messbalise[5] = (int)(pos_y * 10)>>8;
-			messbalise[6] = (int)(pos_y * 10)&0x00FF;
-			messbalise[7] = (unsigned int)(pos_teta*36000/(2*PI)+18000)>>8;
-			messbalise[8] = (unsigned int)(pos_teta*36000/(2*PI)+18000)&0x00FF;
+			//messbalise[3] = (int)(pos_x * 10)>>8;
+			//messbalise[4] = (int)(pos_x * 10)&0x00FF;
+			//messbalise[5] = (int)(pos_y * 10)>>8;
+			//messbalise[6] = (int)(pos_y * 10)&0x00FF;
+			//messbalise[7] = (unsigned int)(pos_teta*36000/(2*PI)+18000)>>8;
+			//messbalise[8] = (unsigned int)(pos_teta*36000/(2*PI)+18000)&0x00FF;
 
-			messbalise[2+1+6] = (periode_tour >> 8) & 0x00FF;
-			messbalise[3+1+6] = periode_tour & 0x00FF;
+			messbalise[2+1+0] = (periode_tour >> 8) & 0x00FF;
+			messbalise[3+1+0] = periode_tour & 0x00FF;
 			
 			
-			messbalise[4+1+6] = nombre_angles[IDCAPTEUR_HAUT];
-			messbalise[5+1+6] = nombre_angles[IDCAPTEUR_BAS];
+			messbalise[4+1+0] = nombre_angles[IDCAPTEUR_HAUT];
+			messbalise[5+1+0] = nombre_angles[IDCAPTEUR_BAS];
        		
-			envoiBalise.nbChar = 6+1+6;
+			envoiBalise.nbChar = 6+1+0;
 			
        		for(i = 0; i < nombre_angles[IDCAPTEUR_HAUT]; i++)
 			{

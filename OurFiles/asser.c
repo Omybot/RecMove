@@ -5,7 +5,7 @@
 
 #define MOYENNE_GLISSANTE_CORRECTEUR 3
 
-unsigned char fin;
+unsigned char fin,flag_virage=0,flag_virage_en_cours=0;
 unsigned int pwet;
 static double speed[N]={0},accel_def_debut[N],accel_def_fin[N];
 double cor_moy[N][MOYENNE_GLISSANTE_CORRECTEUR];
@@ -215,6 +215,7 @@ void Virage(unsigned char cote, double rayon, double angle, unsigned char wait)
 	first[0]=1;
 	first[1]=1;
 	flag_ligne=1;
+	flag_virage=1;
 	motiontype = 2;
 	ratio = (rayon - VOIE/2.0) / (rayon + VOIE/2.0);
 	
@@ -227,10 +228,10 @@ void Virage(unsigned char cote, double rayon, double angle, unsigned char wait)
 	//Motors_SetSpeed(fabs(speed_def_ligne * ratio), moteur1); 
 	//Motors_SetSpeed(speed_def_ligne, moteur2);
 	
-	Motors_SetAcceleration(fabs(accel_def_ligne * ratio), moteur1);  
-	Motors_SetAcceleration(accel_def_ligne, moteur2);
+	Motors_SetAcceleration(fabs(accel_def_ligne_debut * ratio), moteur1);  
+	Motors_SetAcceleration(accel_def_ligne_debut, moteur2);
 	
-	Motors_SetSpeed(fabs(speed_def_ligne * ratio), moteur1); 
+	Motors_SetSpeed(fabs(speed_def_ligne* ratio), moteur1); 
 	Motors_SetSpeed(speed_def_ligne, moteur2);
 	
 	Motors_SetPosition((angle * PI / 180.0) * (rayon - VOIE/2.0),moteur1); 
@@ -542,7 +543,13 @@ unsigned char Motors_Task(void)
 		{
 			if(motion[i]!=MOTION_STOP) // vitesse,position,accel 
 			{
-				if(flag_ligne)
+				if(flag_virage)
+				{
+					flag_virage_en_cours=1;
+					accel_def_debut[i]=accel_def[i];
+					accel_def_fin[i]=accel_def[i];
+				}
+				else if(flag_ligne)
 				{
 					speed_def[i] = speed_def_ligne;
 					accel_def_debut[i] = accel_def_ligne_debut;
@@ -581,6 +588,14 @@ unsigned char Motors_Task(void)
 						motion[i] = MOTION_ACCEL;
 					else if(speed[i] > speed_def[i]) 
 						motion[i] = MOTION_DECEL;
+				}
+			}
+			else
+			{
+				if(flag_virage_en_cours)
+				{
+					flag_virage_en_cours=0;
+					flag_virage=0;
 				}
 			}
 		}
