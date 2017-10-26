@@ -22,6 +22,7 @@ void PilotePIDManual(unsigned int gauche,unsigned int droite);
 Trame PilotePIDErreurs(void);
 void PilotePIDFeedforward(unsigned int value);
 Trame Retour_Valeurs_Analogiques(void);
+Trame Retour_Valeurs_Numeriques(void);
 
 Trame PilotePositionXYT(void);
 Trame PiloteDemandeCapteurs(char numCapteur);
@@ -121,6 +122,9 @@ Trame AnalyseTrame(Trame t);
 
 #define CMD_DEMANDE_VALEURS_ANALOGIQUES	0x76
 #define CMD_REPONSE_VALEURS_ANALOGIQUES	0x77
+
+#define CMD_DEMANDE_VALEURS_NUMERIQUES	0x78
+#define CMD_REPONSE_VALEURS_NUMERIQUES	0x79
 
 #define TRAME_UART2_ENVOI 0xA2
 #define TRAME_UART2_RECEPTION 0xA3

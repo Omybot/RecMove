@@ -61,7 +61,7 @@ void EnvoiUART(Trame t)
 Trame Retour_Valeurs_Analogiques(void)
 {
 	Trame Etat_Valeurs;
-	static BYTE Valeurs[4];
+	static BYTE Valeurs[14];
 	Etat_Valeurs.nbChar = 14;
 	
 
@@ -80,6 +80,87 @@ Trame Retour_Valeurs_Analogiques(void)
 	Valeurs[12] = ADC_Results[5] >> 8;
 	Valeurs[13] = ADC_Results[5] & 0xFF;	
 	
+
+	Etat_Valeurs.message = Valeurs;
+
+	return Etat_Valeurs;
+}
+
+Trame Retour_Valeurs_Numeriques(void)
+{
+	Trame Etat_Valeurs;
+	static BYTE Valeurs[8];
+	Etat_Valeurs.nbChar = 8;
+	
+
+	Valeurs[0] = UDP_ID;
+	Valeurs[1] = CMD_REPONSE_VALEURS_NUMERIQUES;
+	
+	Valeurs[2] = 0;
+	Valeurs[2] += (LATAbits.LATA0 << 8);
+	Valeurs[2] += (LATAbits.LATA1 << 7);
+	Valeurs[2] += (LATAbits.LATA2 << 6);
+	Valeurs[2] += (LATAbits.LATA3 << 5);
+	Valeurs[2] += (LATAbits.LATA4 << 4);
+	//Valeurs[2] += (LATAbits.LATA5 << 3);
+	//Valeurs[2] += (LATAbits.LATA6 << 2);
+	Valeurs[2] += (LATAbits.LATA7 << 1);
+	Valeurs[2] += (LATAbits.LATA8 << 0);	
+	
+	Valeurs[3] = 0;
+	Valeurs[3] += (LATAbits.LATA9 << 8);
+	Valeurs[3] += (LATAbits.LATA10 << 7);
+	//Valeurs[3] += (LATAbits.LATA11 << 6);
+	//Valeurs[3] += (LATAbits.LATA12 << 5);
+	//Valeurs[3] += (LATAbits.LATA13 << 4);
+	//Valeurs[3] += (LATAbits.LATA14 << 3);
+	//Valeurs[3] += (LATAbits.LATA15 << 2);
+	//Valeurs[3] += (LATAbits.LATA16 << 1);
+	//Valeurs[3] += (LATAbits.LATA17 << 0);
+
+	Valeurs[4] = 0;
+	Valeurs[4] += (LATBbits.LATB0 << 8);
+	Valeurs[4] += (LATBbits.LATB1 << 7);
+	Valeurs[4] += (LATBbits.LATB2 << 6);
+	Valeurs[4] += (LATBbits.LATB3 << 5);
+	Valeurs[4] += (LATBbits.LATB4 << 4);
+	Valeurs[4] += (LATBbits.LATB5 << 3);
+	Valeurs[4] += (LATBbits.LATB6 << 2);
+	Valeurs[4] += (LATBbits.LATB7 << 1);
+	Valeurs[4] += (LATBbits.LATB8 << 0);	
+	
+	Valeurs[5] = 0;
+	Valeurs[5] += (LATBbits.LATB9 << 8);
+	Valeurs[5] += (LATBbits.LATB10 << 7);
+	Valeurs[5] += (LATBbits.LATB11 << 6);
+	Valeurs[5] += (LATBbits.LATB12 << 5);
+	Valeurs[5] += (LATBbits.LATB13 << 4);
+	Valeurs[5] += (LATBbits.LATB14 << 3);
+	Valeurs[5] += (LATBbits.LATB15 << 2);
+	//Valeurs[5] += (LATBbits.LATB16 << 1);
+	//Valeurs[5] += (LATBbits.LATB17 << 0);
+
+	Valeurs[6] = 0;
+	Valeurs[6] += (LATCbits.LATC0 << 8);
+	Valeurs[6] += (LATCbits.LATC1 << 7);
+	Valeurs[6] += (LATCbits.LATC2 << 6);
+	Valeurs[6] += (LATCbits.LATC3 << 5);
+	Valeurs[6] += (LATCbits.LATC4 << 4);
+	Valeurs[6] += (LATCbits.LATC5 << 3);
+	Valeurs[6] += (LATCbits.LATC6 << 2);
+	Valeurs[6] += (LATCbits.LATC7 << 1);
+	Valeurs[6] += (LATCbits.LATC8 << 0);	
+	
+	Valeurs[7] = 0;
+	Valeurs[7] += (LATCbits.LATC9 << 8);
+	//Valeurs[7] += (LATCbits.LATC10 << 7);
+	//Valeurs[7] += (LATCbits.LATC11 << 6);
+	//Valeurs[7] += (LATCbits.LATC12 << 5);
+	//Valeurs[7] += (LATCbits.LATC13 << 4);
+	//Valeurs[7] += (LATCbits.LATC14 << 3);
+	//Valeurs[7] += (LATCbits.LATC15 << 2);
+	//Valeurs[7] += (LATCbits.LATC16 << 1);
+	//Valeurs[7] += (LATCbits.LATC17 << 0);
 
 	Etat_Valeurs.message = Valeurs;
 
@@ -760,6 +841,8 @@ Trame AnalyseTrame(Trame t)
 			break;
 		case CMD_DEMANDE_VALEURS_ANALOGIQUES:
 			return Retour_Valeurs_Analogiques();
+		case CMD_DEMANDE_VALEURS_NUMERIQUES:
+			return Retour_Valeurs_Numeriques();
 		break;
 		case CMD_DEPLACEMENT_POLAIRE:
 		 	nbr_points = t.message[3] * 256 + t.message[4];
