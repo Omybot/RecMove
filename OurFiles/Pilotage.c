@@ -9,8 +9,9 @@
 
 #define UART_BUFFER_SIZE 100
 
+extern unsigned int IR_result;
 extern unsigned int pwm_balise;
-extern 	unsigned char flag_envoi_uart,buffer_envoi_uart[UART_BUFFER_SIZE],ptr_write_buffer_uart;
+extern unsigned char flag_envoi_uart,buffer_envoi_uart[UART_BUFFER_SIZE],ptr_write_buffer_uart;
 extern unsigned char Demande_lidar;
 extern unsigned int positions_xy[2][300];
 extern unsigned int nbr_points;
@@ -45,6 +46,23 @@ extern double kp_cap,ki_cap,kd_cap;
 extern double kp_vit,ki_vit,kd_vit;
 unsigned char scan;
 unsigned int Cpt_Tmr_Periode = 0;
+
+Trame Retour_Pattern()
+{
+	Trame Etat_Pattern;
+	static BYTE Valeurs[4];
+	Etat_Pattern.nbChar = 4;
+	
+
+	Valeurs[0] = UDP_ID;
+	Valeurs[1] = REPONSE_PATTERN;
+	Valeurs[2] = IR_result >> 8;
+	Valeurs[3] = IR_result & 0xFF;	
+
+	Etat_Pattern.message = Valeurs;
+
+	return Etat_Pattern;
+}
 
 void EnvoiUART(Trame t)
 {
@@ -808,6 +826,9 @@ Trame AnalyseTrame(Trame t)
 					break;	
 			}
 			break;			
+		case DEMANDE_PATTERN:
+			return Retour_Pattern();
+			break;
 	}
 	return retour;
 }

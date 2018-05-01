@@ -48,6 +48,7 @@ unsigned int hall_front;
 unsigned int motor_speed,Cpt_20ms=0;
 float angle;
 
+unsigned int IR_result;
 
 unsigned int cpt_balise,pwm_balise;
 extern unsigned int ADC_Results[8],cpu_status;
@@ -195,6 +196,7 @@ int main(void)
 
 	Init_Timer2();	// Initialisation Timer2
 	Init_Timer4();	// Initialisation Timer4
+	Init_Timer5();
 	InitQEI(); 		// Initialisation des entrées en quadrature
 	InitPWM();		// Configuration du module PWM 
         
@@ -787,4 +789,21 @@ void __attribute__((interrupt, no_auto_psv)) _IC7Interrupt(void)
 	}
 	IC7CONbits.ICM = 0b001;
 	IFS1bits.IC7IF=0;
+}
+
+void __attribute__((interrupt, no_auto_psv)) _INT1Interrupt(void)
+{
+	static int cpt_IR=0;
+	IFS1bits.INT1IF=0;
+	if(PORTBbits.RB2 == 1)
+	{
+		INTCON2bits.INT1EP = 1; // Check negative edge
+		TMR5=0;
+	}
+	else
+	{
+		INTCON2bits.INT1EP = 0; // Check positive edge
+		IR_result = TMR5;
+	}
+	cpt_IR++;
 }
