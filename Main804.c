@@ -65,7 +65,7 @@ unsigned char flag_envoi=0,flag_blocage=0,flag_calage=0;
 //LIDAR
 unsigned char Demande_lidar = 0,offset_premiere_trame=0;
 unsigned char timeout_lidar=0;
-unsigned char nbr_char_to_send=0,Buffer_passerelle_udpuart[250];
+unsigned char nbr_char_to_send=0,Buffer_passerelle_udpuart[200];
 unsigned char ptr_write_buffer_uart_rec=0,save_write;
 unsigned char ptr_read_buffer_uart_rec=0,save_read;
 unsigned char flag_envoi_uart,buffer_envoi_uart[UART_BUFFER_SIZE],ptr_write_buffer_uart;
@@ -387,7 +387,7 @@ int main(void)
 			nbr_char_to_send = 0;
 		}	
 
-		if(((nbr_char_to_send > 200) || (nbr_char_to_send !=0 && timeout_lidar > 50)))
+		if(((nbr_char_to_send >= 200) || (nbr_char_to_send !=0 && timeout_lidar > 50)))
 		{	
 			for(i=0;i<nbr_char_to_send;i++)
 			{
@@ -707,6 +707,7 @@ void __attribute__((interrupt,auto_psv)) _U2RXInterrupt(void)
 	
 	if(U2STAbits.URXDA == 1)
 	{
+		timeout_lidar=0;
 		Buffer_passerelle_udpuart[ptr_write_buffer_uart_rec++] = U2RXREG;
 		if(ptr_write_buffer_uart_rec>240)
 			ptr_write_buffer_uart_rec=0;

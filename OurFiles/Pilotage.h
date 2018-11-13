@@ -133,7 +133,7 @@ Trame AnalyseTrame(Trame t);
 #define TRAME_DETECTION_BALISE_RAPIDE	0xE5
 
 //2017 à trier
-#define ID_MOTEUR_BALISE				0x02
+#define ID_MOTEUR_BALISE				0x10
 #define CMD_MOTEUR_POSITION				0x66
 #define CMD_DEMANDE_CAPTEUR				0x50
 #define CMD_REPONSE_CAPTEUR				0x51
