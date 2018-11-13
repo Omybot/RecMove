@@ -146,3 +146,6 @@ Trame AnalyseTrame(Trame t);
 #define TRAME_TEST_CONNEXION 0xF0
 
 #define ID_HOKUYO_SOL 0x00
+
+#define DEMANDE_PATTERN 0x23
+#define REPONSE_PATTERN 0x24

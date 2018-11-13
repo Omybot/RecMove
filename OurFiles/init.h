@@ -5,6 +5,7 @@ void InitQEI(void);
 
 void Init_Timer2(void);
 void Init_Timer4(void);
+void Init_Timer5(void);
 void InitUART2(void);
 void InitADC(void);
 void InitDMA(void);

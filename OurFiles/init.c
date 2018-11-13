@@ -74,7 +74,7 @@ void InitPorts()
 	
 	TRISBbits.TRISB0=1; // MOT1_I - Moteurs
 	TRISBbits.TRISB1=1; // MOT3_I - Moteurs
-	TRISBbits.TRISB2=1; // RB2 - Mezzanine
+	TRISBbits.TRISB2=1; // RB2 - Mezzanine ==> 2018 : Recepteur IR
 	TRISBbits.TRISB3=1; // RB3 - Mezzanine
 	TRISBbits.TRISB4=1; // RB4 - Mezzanine
 	TRISBbits.TRISB5=1; // PGD - JTAG 
@@ -120,6 +120,14 @@ void InitPorts()
 	RPINR7bits.IC1R = 4;  	// Capteur effet hall
 	RPINR7bits.IC2R = 17;  	// Capteur laser 1
 	RPINR10bits.IC7R = 18; 	// Capteur laser 2
+
+	RPINR0bits.INT1R = 2; // Recepteur IR
+
+	INTCON2bits.INT1EP = 0; // Positive edge
+	IFS1bits.INT1IF = 0; // Clear interrupt flag
+	IEC1bits.INT1IE = 1; // Enable interrupt
+	
+	
 }
 
 void Init_Timer2(void)		
@@ -156,6 +164,21 @@ void Init_Timer4(void)
 	IEC1bits.T4IE = 1; 		//Enable Timer4 interrupt
 	
 	T4CONbits.TON = 1;		//Starts the timer
+}
+
+void Init_Timer5(void)
+{
+	//--Timer5
+	T5CONbits.TON 	= 0;	//Stops the timer
+	T5CONbits.TSIDL = 0;
+	T5CONbits.TGATE = 0;
+	T5CONbits.TCS	= 0;
+	T5CONbits.TCKPS = 0b10; //Prescaler set to 1:64
+	
+	TMR5 = 0; 				//Clear timer register
+	PR5  = 65536; 			//Load the period value (Pas) 1/(40e6/64/65536) = 104.8576 ms
+
+	T5CONbits.TON = 1;		//Starts the timer
 }
 
 void InitPWM(void)
