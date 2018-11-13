@@ -262,9 +262,12 @@ int main(void)
 
 	
 
-	while(1)
+	/*while(1)
   	{	
-    		
+    	pwm(MOTEUR_4,4000);		// Moteur benne
+	}*/
+	while(1)
+	{
 		// Gestion Balise
 		if(Fin_d_angle_bas == 1)
 		{

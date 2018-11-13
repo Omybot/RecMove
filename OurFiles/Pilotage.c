@@ -47,6 +47,27 @@ extern double kp_vit,ki_vit,kd_vit;
 unsigned char scan;
 unsigned int Cpt_Tmr_Periode = 0;
 
+int PiloteVitesse(unsigned int id, unsigned int sens, unsigned int vitesse)
+{
+	double vit = (double)vitesse;
+
+	if(sens == SENS_DROITE)
+		vit = -vit;
+	
+	switch (id)
+	{
+		case 11: // Moteur 3
+			pwm(MOTEUR_1,vit);
+			break;
+		case 12: // Moteur 4
+			pwm(MOTEUR_4,vit);
+			break;
+	}
+//	Motors_SetSpeed(vitesse,MOTEUR_GAUCHE);
+//	Motors_SetSpeed(vitesse,MOTEUR_DROIT);
+	return 1;
+}
+
 Trame Retour_Pattern()
 {
 	Trame Etat_Pattern;
@@ -521,12 +542,6 @@ Trame PiloteGetBuffPosition()
 	return trame;
 }
 
-int PiloteVitesse(int vitesse)
-{
-	Motors_SetSpeed(vitesse,MOTEUR_GAUCHE);
-	Motors_SetSpeed(vitesse,MOTEUR_DROIT);
-	return 1;
-}
 
 int PiloteAcceleration(int acceleration)
 {
@@ -628,6 +643,12 @@ Trame AnalyseTrame(Trame t)
 
 	switch(t.message[1])
 	{
+		case CMD_VITESSE_MOTEUR:
+			param1 = t.message[2];						// ID
+			param2 = t.message[3];						// SENS
+			param3 = t.message[4] * 256 + t.message[5]; // Valeur Vitesse
+			PiloteVitesse(param1, param2 , param3);
+			break;
 		case CMD_DEBUG:
 			param1 = t.message[3];							// Numero
 			switch(param1)
@@ -825,9 +846,12 @@ Trame AnalyseTrame(Trame t)
 					//pwm(ID_MOTEUR_BALISE,(double)param1);
 					break;	
 			}
-			break;			
+			break;
 		case DEMANDE_PATTERN:
 			return Retour_Pattern();
+			break;
+		default :
+			param1 = t.message[2];						// ID
 			break;
 	}
 	return retour;

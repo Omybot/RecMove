@@ -4,6 +4,9 @@
 #include "Types.h"
 #include "UserUdp.h"
 
+// Moteur sens
+#define SENS_DROITE 3
+#define SENS_GAUCHE 2
 
 void EnvoiUART(Trame t);
 
@@ -30,6 +33,8 @@ Trame PiloteDemandeCapteur(char numCapteur);
 void PiloteLevagePosition(char avantOuArriere, int position);
 Trame PiloteCapteurs(char cote);
 
+int PiloteVitesse(unsigned int id, unsigned int sens, unsigned int vitesse);
+Trame Retour_Pattern();
 
 // Constantes des fonctions des actionneurs
 #define ON  1
@@ -45,7 +50,6 @@ void delays(void);
 void delayms(void);
 //ASSERVISSEMENT
 
-int PiloteVitesse(int vitesse);
 int PiloteAcceleration(int acceleration);
 int PiloteAvancer(double distance);
 int PiloteReculer(double distance);
@@ -106,6 +110,7 @@ Trame AnalyseTrame(Trame t);
 #define CMD_PRD_ENVOI_POSITION			0x48
 
 // Actionneurs
+#define CMD_VITESSE_MOTEUR				0x67
 
 // Capteurs
 #define CMD_DEPART_JACK					0x71	
@@ -133,7 +138,7 @@ Trame AnalyseTrame(Trame t);
 #define TRAME_DETECTION_BALISE_RAPIDE	0xE5
 
 //2017 à trier
-#define ID_MOTEUR_BALISE				0x02
+#define ID_MOTEUR_BALISE				0x10
 #define CMD_MOTEUR_POSITION				0x66
 #define CMD_DEMANDE_CAPTEUR				0x50
 #define CMD_REPONSE_CAPTEUR				0x51
