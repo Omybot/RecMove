@@ -8,6 +8,20 @@
 #define SENS_DROITE 3
 #define SENS_GAUCHE 2
 
+// Capteur de couleur
+typedef struct Rgb
+{
+  unsigned char red;
+  unsigned char green;
+  unsigned char blue;
+}Rgb;
+unsigned int Send_Variable_Capteur_Couleur(void);
+Trame Couleur_Balle(void);
+Trame CouleurRGB(int Id);
+double period2frequency(unsigned int period);
+Rgb frequency2RGB(double freqClear, double freqRed, double freqGreen, double freqBlue);
+
+Trame Retour_Capteur_Onoff(unsigned char id_capteur);
 void EnvoiUART(Trame t);
 
 Trame PiloteGotoXY(int x, int y, unsigned char x_negatif, unsigned char y_negatif);
@@ -32,9 +46,6 @@ Trame PiloteDemandeCapteurs(char numCapteur);
 Trame PiloteDemandeCapteur(char numCapteur);
 void PiloteLevagePosition(char avantOuArriere, int position);
 Trame PiloteCapteurs(char cote);
-
-int PiloteVitesse(unsigned int id, unsigned int sens, unsigned int vitesse);
-Trame Retour_Pattern();
 
 // Constantes des fonctions des actionneurs
 #define ON  1
@@ -109,21 +120,33 @@ Trame AnalyseTrame(Trame t);
 #define CMD_REPONSE_BUFF_STATUS			0x47
 #define CMD_PRD_ENVOI_POSITION			0x48
 
+// Capteur de couleur
+#define CMD_DEMANDE_CAPTEUR_COULEUR 	0x52
+#define CMD_REPONSE_CAPTEUR_COULEUR 	0x53
+
 // Actionneurs
-#define CMD_VITESSE_MOTEUR				0x67
+#define TRAME_PILOTAGE_ONOFF 			0x65
+
+// Liste des actionneurs
+#define ALIMENTATION_CAPTEUR_COULEUR	0x01
+#define MAKEVACUUM_BACK					0x11
+#define MAKEVACUUM_FRONT				0x13
+#define OPENVACUUM_BACK					0x20
+#define OPENVACUUM_FRONT				0x22
+
+#define VACUOSTAT_BACK					0x11
+#define VACUOSTAT_FRONT					0x13
 
 // Capteurs
-#define CMD_DEPART_JACK					0x71	
 #define CMD_DEMANDE_COULEUR_EQUIPE		0x72
 #define CMD_REPONSE_COULEUR_EQUIPE		0x73
-#define CMD_ARME_JACK					0x70
+
+// Capteurs onOff
+#define CMD_DEMANDE_CAPTEUR_ONOFF		0x74
+#define CMD_REPONSE_CAPTEUR_ONOFF		0x75
 
 // Diagnostic
 #define	CMD_DEBUG						0xEE
-#define	CMD_ECHO						0xF0
-#define	CMD_RESET_CARTE					0xF1
-#define CMD_DEMANDE_PRESENCE_JACK		0xF3
-#define CMD_REPONSE_PRESENCE_JACK		0xF4
 
 #define CMD_DEMANDE_VALEURS_ANALOGIQUES	0x76
 #define CMD_REPONSE_VALEURS_ANALOGIQUES	0x77
@@ -131,8 +154,8 @@ Trame AnalyseTrame(Trame t);
 #define CMD_DEMANDE_VALEURS_NUMERIQUES	0x78
 #define CMD_REPONSE_VALEURS_NUMERIQUES	0x79
 
-#define TRAME_UART2_ENVOI 0xA2
-#define TRAME_UART2_RECEPTION 0xA3
+#define TRAME_UART2_ENVOI 				0xA2
+#define TRAME_UART2_RECEPTION 			0xA3
 
 #define TRAME_DETECTION_BALISE			0xE4
 #define TRAME_DETECTION_BALISE_RAPIDE	0xE5
@@ -151,6 +174,3 @@ Trame AnalyseTrame(Trame t);
 #define TRAME_TEST_CONNEXION 0xF0
 
 #define ID_HOKUYO_SOL 0x00
-
-#define DEMANDE_PATTERN 0x23
-#define REPONSE_PATTERN 0x24

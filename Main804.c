@@ -18,6 +18,11 @@
 #define IDCAPTEUR_BAS 0
 #define IDCAPTEUR_HAUT 1
 
+//Define Capteur Couleur
+#define LED LATAbits.LATA8
+#define S2 LATAbits.LATA10
+#define S3 LATAbits.LATA7 
+
 // Bits configuration
 _FOSCSEL(FNOSC_FRC)
 _FOSC(FCKSM_CSECMD & OSCIOFNC_ON)
@@ -72,6 +77,11 @@ unsigned char ptr_read_buffer_uart_rec=0,save_read;
 unsigned char flag_envoi_uart,buffer_envoi_uart[UART_BUFFER_SIZE],ptr_write_buffer_uart;
 unsigned char ptr_read_buffer_uart=0;
 
+//Variable Capteur Couleur
+unsigned int Cpt_Tmr2_Capteur_Couleur = 0;
+unsigned int Tab_Capteur_Couleur[8] = {0};
+unsigned char etat_Capteur_Couleur = 0,alim_capteur_couleur=0;
+
 
 void _ISR __attribute__((__no_auto_psv__)) _AddressError(void)
 {
@@ -91,13 +101,6 @@ int main(void)
 	static DWORD dwLastIP = 0;
 	
 	Trame trame;		
-
-	Trame Jack;
-	static BYTE Presence[2];
-	Jack.nbChar = 2;
-	Presence[0] = UDP_ID;
-	Presence[1] = CMD_DEPART_JACK;
-	Jack.message = Presence;
 
 	Trame Couleur_Equipe;
 	static BYTE Couleur[3];
@@ -416,11 +419,6 @@ int main(void)
 				ptr_read_buffer_uart=0;
 		}
 		//Fin Gestion LIDAR	
-	  	if(PORTAbits.RA10 && jackAvant)
-	  	{
-		  	EnvoiUserUdp (Jack);
-		  	jackAvant = 0;
-		}
 		if(etatCouleur != PORTAbits.RA7)
 		{
 			Couleur[2] = PORTAbits.RA7;
@@ -660,16 +658,8 @@ void SaveAppConfig(void)
 
 void __attribute__ ((interrupt, no_auto_psv)) _T4Interrupt(void) 
 {
-	static unsigned int cpt_asser_canon=0,cpt_envoi_position=0;
-	static unsigned char k=0;
-	unsigned char i=0;
-	double temp;
-	unsigned int lol,truc;
-	static double tab_vitesse_canon[16];
-	static unsigned int puissance;
-	static unsigned char etat_canon=0;	
-	static double vitesse_canon_brut;
-
+	static unsigned int cpt_envoi_position=0;
+	
 	flag = 0;
 	courrier = 1;
 	cpt_balise=0;
@@ -699,15 +689,85 @@ void __attribute__ ((interrupt, no_auto_psv)) _T4Interrupt(void)
 		motor_flag=0;
 	}
 	
+	// Gestion capteur de couleur
+	if(alim_capteur_couleur)
+	{
+		Cpt_Tmr2_Capteur_Couleur++;
+		if(Cpt_Tmr2_Capteur_Couleur == 20)
+		{
+			Cpt_Tmr2_Capteur_Couleur = 0;
+			switch(etat_Capteur_Couleur++)
+			{	
+				case 0:
+					S2  = 0;
+					S3  = 0; 
+					LED = 0;
+				case 1: // Capture RED filter without led
+					Tab_Capteur_Couleur[0] = Send_Variable_Capteur_Couleur(); // Capture de S2=0, S3=0 et LED=0
+					S2  = 0;
+					S3  = 1; 
+					LED = 0;
+				break;
+				case 2: // Capture BLUE filter without led
+					Tab_Capteur_Couleur[1] = Send_Variable_Capteur_Couleur(); // Capture de S2=0, S3=1 et LED=0	
+					S2  = 1;
+					S3  = 0; 
+					LED = 0;
+				break;
+				case 3: // Capture Clear filter without led
+					Tab_Capteur_Couleur[2] = Send_Variable_Capteur_Couleur(); // Capture de S2=1, S3=0 et LED=0
+					S2  = 1; 
+					S3  = 1;
+					LED = 0;
+				break;
+				case 4: // Capture GREEN filter without led
+					Tab_Capteur_Couleur[3] = Send_Variable_Capteur_Couleur(); // Capture de S2=1, S3=1 et LED=0
+					S2  = 0;
+					S3  = 0; 
+					LED = 1;
+				break;
+				case 5: // Capture RED filter with LED
+					Tab_Capteur_Couleur[4] = Send_Variable_Capteur_Couleur(); // Capture de S2=0, S3=0 et LED=1 
+					S2  = 0;
+					S3  = 1; 
+					LED = 1;
+				break;
+				case 6: // Capture BLUE filter with LED
+					Tab_Capteur_Couleur[5] = Send_Variable_Capteur_Couleur(); // Capture de S2=0, S3=1 et LED=1 
+					S2  = 1;
+					S3  = 0; 
+					LED = 1;
+				break;
+				case 7: // Capture Clear filter with LED
+					Tab_Capteur_Couleur[6] = Send_Variable_Capteur_Couleur(); // Capture de S2=1, S3=0 et LED=1 
+					S2  = 1;
+					S3  = 1; 
+					LED = 1;
+				break;
+				case 8: // Capture GREEN filter with LED
+					Tab_Capteur_Couleur[7] = Send_Variable_Capteur_Couleur(); // Capture de S2=1, S3=1 et LED=1 
+					S2  = 0;
+					S3  = 0; 
+					LED = 1; // On saute l'étape 4
+					etat_Capteur_Couleur = 5;
+				break;
+			}
+		}
+	}
+	else
+	{
+		LED = 0;
+		S2  = 0;
+		S3  = 0; 
+		etat_Capteur_Couleur=4;
+	}
+
 	cpu_status = (TMR4); //Previous value TMR4
 	IFS1bits.T4IF = 0;
 }
 
 void __attribute__((interrupt,auto_psv)) _U2RXInterrupt(void)
 {
-	static unsigned etat_rx=0;
-	static unsigned int recu,recu_ptr=0;
-
 	IFS1bits.U2RXIF = 0; 		// clear RX interrupt flag
 	
 	if(U2STAbits.URXDA == 1)

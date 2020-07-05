@@ -9,7 +9,7 @@ unsigned char fin,flag_virage=0,flag_virage_en_cours=0;
 unsigned int pwet;
 static double speed[N]={0},accel_def_debut[N],accel_def_fin[N];
 double cor_moy[N][MOYENNE_GLISSANTE_CORRECTEUR];
-unsigned char cpt_sature[N],bridage=0,ptr_cor_moy[N];	
+unsigned char cpt_sature[N],ptr_cor_moy[N];	
 unsigned char flag_ligne;
 unsigned int saturation_pos[N]={0},saturation_neg[N]={0};
 unsigned char first[N];
@@ -904,24 +904,11 @@ char pwm(unsigned char motor, double valeur) // Value = +/- 4000
 
 	value = valeur;
 
-	value = value / 1;
-
-
-	if(bridage)
-	{
-		if(value >  2200) value =  2200;
-		if(value < -2200) value = -2200;	
-	}
-
 	if(value >  4000) value =  4000;
 	if(value < -4000) value = -4000;	
 
 	value = value * 2;
 	
-	
-
-	
-
 	switch(motor)
 	{
 		
@@ -943,11 +930,11 @@ char pwm(unsigned char motor, double valeur) // Value = +/- 4000
 		case AVANT:
 		case GAUCHE: 	
 		case MOTEUR_2:	if(motiontype == 3)
-							{
-								if(value >  2000) value =  2000;
-								if(value < -2000) value = -2000;	
-						
-							}
+						{
+							if(value >  2000) value =  2000;
+							if(value < -2000) value = -2000;	
+					
+						}
 						if(value > 0)	// Moteur Gauche
 						{
 							PWM1CON1bits.PEN3L = 0;
@@ -965,12 +952,12 @@ char pwm(unsigned char motor, double valeur) // Value = +/- 4000
 						break;
 		case ARRIERE:
 		case DROITE:
-		case MOTEUR_3:		if(motiontype == 3)
-							{
-								if(value >  2000) value =  2000;
-								if(value < -2000) value = -2000;	
+		case MOTEUR_3:	if(motiontype == 3)
+						{
+							if(value >  2000) value =  2000;
+							if(value < -2000) value = -2000;	
 						
-							}
+						}
 						if(value > 0)	// Moteur Gauche
 						{
 							PWM1CON1bits.PEN2L = 0;

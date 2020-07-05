@@ -9,13 +9,20 @@
 
 #define UART_BUFFER_SIZE 100
 
+//	Extern Capteur Couleur
+extern unsigned int Tab_Capteur_Couleur[8];
+extern unsigned char alim_capteur_couleur;
+
+//Variable Capteur Couleur
+unsigned int Valeur_Capteur_Couleur = 24;
+unsigned int Cpt_Tmr_Periode = 0;
+
 extern unsigned int IR_result;
 extern unsigned int pwm_balise;
 extern unsigned char flag_envoi_uart,buffer_envoi_uart[UART_BUFFER_SIZE],ptr_write_buffer_uart;
 extern unsigned char Demande_lidar;
 extern unsigned int positions_xy[2][300];
 extern unsigned int nbr_points;
-extern unsigned char bridage;
 extern unsigned int prd_envoi_position;
 extern unsigned char jackAvant;
 extern unsigned char desactive_interrupt;
@@ -45,44 +52,125 @@ extern double erreur_allowed;
 extern double kp_cap,ki_cap,kd_cap;
 extern double kp_vit,ki_vit,kd_vit;
 unsigned char scan;
-unsigned int Cpt_Tmr_Periode = 0;
 
-int PiloteVitesse(unsigned int id, unsigned int sens, unsigned int vitesse)
-{
-	double vit = (double)vitesse;
-
-	if(sens == SENS_DROITE)
-		vit = -vit;
-	
-	switch (id)
-	{
-		case 11: // Moteur 3
-			pwm(MOTEUR_1,vit);
-			break;
-		case 12: // Moteur 4
-			pwm(MOTEUR_4,vit);
-			break;
-	}
-//	Motors_SetSpeed(vitesse,MOTEUR_GAUCHE);
-//	Motors_SetSpeed(vitesse,MOTEUR_DROIT);
-	return 1;
+unsigned int Send_Variable_Capteur_Couleur(void){
+	return Valeur_Capteur_Couleur;
 }
 
-Trame Retour_Pattern()
+Trame Couleur_Balle(void)
 {
-	Trame Etat_Pattern;
-	static BYTE Valeurs[4];
-	Etat_Pattern.nbChar = 4;
+
+	Trame Couleur_Balle;
+	static BYTE Couleur[18];
+	Couleur_Balle.nbChar = 18;
+
+	Couleur[0] = 0xC4;
+	Couleur[1] = CMD_DEBUG; //CMD_REPONSE_COULEUR_BALLE
+
+	Couleur[2] = Tab_Capteur_Couleur[0]>>8;
+	Couleur[3] = Tab_Capteur_Couleur[0]&0x00FF;
+
+	Couleur[4] = Tab_Capteur_Couleur[1]>>8;
+	Couleur[5] = Tab_Capteur_Couleur[1]&0x00FF;
+
+	Couleur[6] = Tab_Capteur_Couleur[2]>>8;
+	Couleur[7] = Tab_Capteur_Couleur[2]&0x00FF;
+
+	Couleur[8] = Tab_Capteur_Couleur[3]>>8;
+	Couleur[9] = Tab_Capteur_Couleur[3]&0x00FF;
+
+	Couleur[10] = Tab_Capteur_Couleur[4]>>8;
+	Couleur[11] = Tab_Capteur_Couleur[4]&0x00FF;
+
+	Couleur[12] = Tab_Capteur_Couleur[5]>>8;
+	Couleur[13] = Tab_Capteur_Couleur[5]&0x00FF;
+
+	Couleur[14] = Tab_Capteur_Couleur[6]>>8;
+	Couleur[15] = Tab_Capteur_Couleur[6]&0x00FF;
+
+	Couleur[16] = Tab_Capteur_Couleur[7]>>8;
+	Couleur[17] = Tab_Capteur_Couleur[7]&0x00FF;
+
+	Couleur_Balle.message = Couleur;
+
+	return Couleur_Balle;
+
+}
+
+Trame CouleurRGB(int Id)
+{
+	Rgb RgbVal;
+	Trame RgbMessage;	
+	double freqClear,freqRed,freqGreen,freqBlue;	
+	static BYTE Couleur[6];
 	
+	RgbMessage.nbChar = 6;
+	Couleur[0] = 0xC4;
+	Couleur[1] = CMD_REPONSE_CAPTEUR_COULEUR;
+	Couleur[2] = Id;
 
+	freqClear = period2frequency(Tab_Capteur_Couleur[6]);
+	freqRed   = period2frequency(Tab_Capteur_Couleur[4]);
+	freqGreen = period2frequency(Tab_Capteur_Couleur[7]);
+	freqBlue  = period2frequency(Tab_Capteur_Couleur[5]);
+
+	RgbVal = frequency2RGB(freqClear, freqRed, freqGreen, freqBlue);
+
+	Couleur[3] = RgbVal.red;
+	Couleur[4] = RgbVal.green;
+	Couleur[5] = RgbVal.blue;
+
+	RgbMessage.message = Couleur;
+	return RgbMessage;
+}
+
+double period2frequency(unsigned int period)
+{
+	double frequency;
+	double fcy = 40000000;   // 40MHz
+	BYTE timerPrescaler = 8; // Timer TCKPS prescaler value
+	BYTE captureEventConfig = 16; // Event captured on every 16th rising edge
+	double timeBaseFreq = fcy/timerPrescaler;
+	double timeBasePeriod = 1/(timeBaseFreq);   // period of 1 tick of the time base
+	
+	// frequency of the timer value captured by IC mdoule
+	frequency = 1/((period/captureEventConfig)*timeBasePeriod);
+	return frequency;
+}
+
+Rgb frequency2RGB(double freqClear, double freqRed, double freqGreen, double freqBlue)
+{
+	Rgb rgbVal;
+	rgbVal.red = (freqRed/freqClear)*255;
+	rgbVal.green = (freqGreen/freqClear)*255;
+	rgbVal.blue = (freqBlue/freqClear)*255;
+	
+	return rgbVal;  
+}
+
+Trame Retour_Capteur_Onoff(unsigned char id_capteur)
+{
+	Trame Etat_Valeurs;
+	static BYTE Valeurs[4];
+	Etat_Valeurs.nbChar = 4;
+	
 	Valeurs[0] = UDP_ID;
-	Valeurs[1] = REPONSE_PATTERN;
-	Valeurs[2] = IR_result >> 8;
-	Valeurs[3] = IR_result & 0xFF;	
+	Valeurs[1] = CMD_REPONSE_CAPTEUR_ONOFF;
+	Valeurs[2] = id_capteur;
+	switch(id_capteur)
+	{
+		case VACUOSTAT_BACK:
+			Valeurs[3] = !PORTCbits.RC1;
+			break;
+		case VACUOSTAT_FRONT:
+			Valeurs[3] = PORTCbits.RC2;
+			break;
+	}
+	
+	
+	Etat_Valeurs.message = Valeurs;
 
-	Etat_Pattern.message = Valeurs;
-
-	return Etat_Pattern;
+	return Etat_Valeurs;
 }
 
 void EnvoiUART(Trame t)
@@ -233,21 +321,6 @@ Trame Couleur_Equipe(void)
 	Etat_Couleur_Equipe.message = Couleur;
 	
 	return Etat_Couleur_Equipe;
-}
-
-Trame Presence_Jack(void)
-{
-	Trame Etat_Jack;
-	static BYTE Jack[3];
-	Etat_Jack.nbChar = 3;
-
-	Jack[0] = UDP_ID;
-	Jack[1] = CMD_REPONSE_PRESENCE_JACK;
-	Jack[2] = !PORTAbits.RA8;	
-
-	Etat_Jack.message = Jack;
-
-	return Etat_Jack;
 }
 
 Trame PiloteGotoXY(int x,int y, unsigned char x_negatif, unsigned char y_negatif)
@@ -643,12 +716,6 @@ Trame AnalyseTrame(Trame t)
 
 	switch(t.message[1])
 	{
-		case CMD_VITESSE_MOTEUR:
-			param1 = t.message[2];						// ID
-			param2 = t.message[3];						// SENS
-			param3 = t.message[4] * 256 + t.message[5]; // Valeur Vitesse
-			PiloteVitesse(param1, param2 , param3);
-			break;
 		case CMD_DEBUG:
 			param1 = t.message[3];							// Numero
 			switch(param1)
@@ -684,7 +751,7 @@ Trame AnalyseTrame(Trame t)
 					retour = PiloteDebug9(t);
 					break;
 			}
-		break;
+			break;
 		
 		case CMD_AVANCER:
 			param1 = t.message[3] * 256 + t.message[4];		// Distance
@@ -692,7 +759,7 @@ Trame AnalyseTrame(Trame t)
 				PiloteAvancer(param1);
 			else
 				PiloteReculer(param1);
-		break;
+			break;
 
 		case CMD_GOTOXY:
 			param1 = t.message[2] * 256 + t.message[3];		// X
@@ -700,17 +767,17 @@ Trame AnalyseTrame(Trame t)
 			param3 = t.message[6];							// X positif
 			param4 = t.message[7];							// Y positif
 			retour = PiloteGotoXY(param1,param2,(unsigned char)param3,(unsigned char)param4);
-		break;
+			break;
 
 		case CMD_RECALLAGE:
 			Calage(t.message[2]);							// Sens
-		break;
+			break;
 
 		case CMD_PIVOTER:
 			param1 = t.message[3] * 256 + t.message[4];		// Angle
 			param2 = t.message[2];							// Sens
 			PilotePivoter(param1, (Cote)param2);
-		break;
+			break;
 
 		case CMD_VIRAGE:
 			param1 = t.message[4] * 256 + t.message[5];		// Rayon
@@ -718,56 +785,56 @@ Trame AnalyseTrame(Trame t)
 			param3 = t.message[3];							// Direction
 			param4 = t.message[2];							// Sens
 			PiloteVirage((unsigned char)param4,(unsigned char)param3, (double)param1, (double)param2);
-		break;
+			break;
 
 		case CMD_STOP:
 			param1 = t.message[2];							// StopMode
 			PiloteStop((unsigned char)param1);
-		break;
+			break;
 
 		case CMD_VITESSE_PIVOT:
 			param1 = t.message[2] * 256 + t.message[3];		// Vitesse
 			Motors_SetSpeed_Pivot(param1);
-		break;
+			break;
 
 		case CMD_VITESSE_LIGNE:
 			param1 = t.message[2] * 256 + t.message[3];		// Vitesse
 			Motors_SetSpeed_Ligne((double)param1);
-		break;
+			break;
 
 		case CMD_ACCELERATION_PIVOT:
 			param1 = t.message[2] * 256 + t.message[3];		// Accélération
 			Motors_SetAcceleration_Pivot((double)param1);
-		break;
+			break;
 
 		case CMD_ACCELERATION_LIGNE:
 			param1 = t.message[2] * 256 + t.message[3];		// Accélération début
 			param2 = t.message[4] * 256 + t.message[5];		// Accélération fin
 			Motors_SetAcceleration_Ligne((double)param1, (double)param2);
-		break;
-			
+			break;			
 
 		case CMD_ENVOI_PID:
 			param1 = t.message[2]*256+t.message[3];			// P
 			param2 = t.message[4]*256+t.message[5];			// I
 			param3 = t.message[6]*256+t.message[7];			// D
 			PilotePIDCoeffs(param1,param2,param3);
-		break;
+			break;
+
 		case CMD_ENVOI_PID_CAP:
 			kp_cap = ((double)(t.message[2]*256+t.message[3]))*100;			// P
 			ki_cap = (double)(t.message[4]*256+t.message[5]);			// I
 			kd_cap = ((double)(t.message[6]*256+t.message[7]))*100;			// D
-		break;
+			break;
+
 		case CMD_ENVOI_PID_VITESSE:
 			kp_vit = (double)(t.message[2]*256+t.message[3]);			// P
 			ki_vit = (double)(t.message[4]*256+t.message[5]);			// I
 			kd_vit = (double)(t.message[6]*256+t.message[7]);			// D
-		break;
+			break;
 
 		case TRAME_TEST_CONNEXION:
-			bridage = t.message[2];
 			retour = ReponseEcho();
-		break;
+			break;
 			
 		case CMD_DEMANDE_COULEUR_EQUIPE:
 			// Interrupteur couleur Equipe
@@ -780,24 +847,12 @@ Trame AnalyseTrame(Trame t)
 			param2 = t.message[4]*256+t.message[5];			// Y
 			param3 = t.message[6]*256+t.message[7];			// TETA
 			PiloteOffsetAsserv((double)param1,(double)param2,(double)param3);
-
-		break;
+			break;
 
 		case CMD_DEMANDEPOSITION: // Demande POS X Y TETA
 			retour = PilotePositionXYT();
-		break;
+			break;
 
-		
-		
-		case CMD_RESET_CARTE:
-			Reset();
-		break;
-		case CMD_ARME_JACK:
-			jackAvant=1;
-		break;
-		case CMD_DEMANDE_PRESENCE_JACK:
-			return Presence_Jack();
-		break;
 		case CMD_CONSIGNE_POSITION:
 			if(t.message[2] == AVANT)
 			{
@@ -810,20 +865,23 @@ Trame AnalyseTrame(Trame t)
 				cons_pos[1] -= MM_SCALER * (t.message[3] * 256 + t.message[4]);
 			}
 			break;
+
 		case CMD_DEMANDE_BUFF_POSITION:
 			return PiloteGetBuffPosition();
-			break;
+
 		case CMD_DEMANDE_BUFF_STATUS:
 			return StatusMonitor();
-			break;
+
 		case CMD_PRD_ENVOI_POSITION:
 			prd_envoi_position = 10*(unsigned int)t.message[2];
 			break;
+
 		case CMD_DEMANDE_VALEURS_ANALOGIQUES:
 			return Retour_Valeurs_Analogiques();
+
 		case CMD_DEMANDE_VALEURS_NUMERIQUES:
 			return Retour_Valeurs_Numeriques();
-		break;
+
 		case CMD_DEPLACEMENT_POLAIRE:
 		 	nbr_points = t.message[3] * 256 + t.message[4];
 			for(i=0;i<nbr_points;i++)
@@ -834,10 +892,12 @@ Trame AnalyseTrame(Trame t)
 			positions_xy[0][0]=pos_x;
 			positions_xy[1][0]=pos_y;
 			Deplacement_Polaire();			
-		break;
+			break;
+
 		case TRAME_UART2_ENVOI:
 			Demande_lidar=1;
 			break;
+
 		case CMD_MOTEUR_POSITION:
 			switch (t.message[2])
 			{
@@ -847,9 +907,78 @@ Trame AnalyseTrame(Trame t)
 					break;	
 			}
 			break;
-		case DEMANDE_PATTERN:
-			return Retour_Pattern();
+
+		case TRAME_PILOTAGE_ONOFF:
+			switch (t.message[2])
+			{
+				case ALIMENTATION_CAPTEUR_COULEUR:
+					alim_capteur_couleur = t.message[3];
+					break;
+				case MAKEVACUUM_BACK:
+					if(t.message[3])
+					{
+						PWM2CON1bits.PEN1L = 1;
+						MOT1L=0;
+						P2DC1 = 4000;
+					}
+					else
+					{
+						PWM2CON1bits.PEN1L = 0;
+						MOT1L=1;
+						P2DC1 = 4000;
+					}
+					break;
+				case MAKEVACUUM_FRONT:
+					if(t.message[3])
+					{
+						PWM2CON1bits.PEN1H = 1;
+						MOT1H=0;
+						P2DC1 = 4000;
+					}
+					else
+					{
+						PWM2CON1bits.PEN1H = 0;
+						MOT1H=1;
+						P2DC1 = 4000;
+					}
+				case OPENVACUUM_BACK:
+					if(t.message[3])
+					{
+						PWM1CON1bits.PEN1L = 1;
+						MOT4L=0;
+						P1DC1 = 4000;
+					}
+					else
+					{
+						PWM1CON1bits.PEN1L = 0;
+						MOT4L=1;
+						P1DC1 = 4000;
+					}
+					break;
+				case OPENVACUUM_FRONT:
+					if(t.message[3])
+					{
+						PWM1CON1bits.PEN1H = 1;
+						MOT4H=0;
+						P1DC1 = 4000;
+					}
+					else
+					{
+						PWM1CON1bits.PEN1H = 0;
+						MOT4H=1;
+						P1DC1 = 4000;
+					}
+					break;
+			}
 			break;
+		
+		case CMD_DEMANDE_CAPTEUR_ONOFF:
+			return Retour_Capteur_Onoff(t.message[2]);
+
+		case CMD_DEMANDE_CAPTEUR_COULEUR:
+      		retour = CouleurRGB(t.message[2]);
+			break;
+
 		default :
 			param1 = t.message[2];						// ID
 			break;
