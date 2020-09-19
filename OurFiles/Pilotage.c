@@ -985,3 +985,19 @@ Trame AnalyseTrame(Trame t)
 	}
 	return retour;
 }
+
+//Interruption Input Capture
+//Interruption induced on every 16th Rising Edge
+void __attribute__((__interrupt__,__auto_psv__)) _IC1Interrupt(void)
+{
+	unsigned int t1,t2;
+	t1=IC1BUF;
+	t2=IC1BUF;
+
+	IFS0bits.IC1IF=0;
+
+	if(t2>t1)
+		Valeur_Capteur_Couleur = t2-t1;
+	else
+		Valeur_Capteur_Couleur = (PR3 - t1) + t2;
+}

@@ -21,10 +21,11 @@ void Init_Interrupt_Priority(void)
 {
 	IPC14bits.QEI1IP = 7;			// Quad Encoder Interrupt
 	IPC18bits.QEI2IP = 7;			// Quad Encoder Interrupt
-	IPC1bits.T2IP = 6; 				//Set Timer2 Interrupt Priority Level
-	IPC15bits.DMA5IP  = 5;			// ADC Interrupt
-	IPC0bits.T1IP    = 4;			// Timer 1 used by Ethernet (Default value = 2)
-	IPC6bits.T4IP    = 3;			// Timer 4 Used by Asser
+	IPC2bits.T3IP   = 6;			// Timer 3 used by Input Capture (IC1)
+	IPC1bits.T2IP = 5; 				//Set Timer2 Interrupt Priority Level
+	IPC15bits.DMA5IP  = 4;			// ADC Interrupt
+	IPC0bits.T1IP    = 3;			// Timer 1 used by Ethernet (Default value = 2)
+	IPC6bits.T4IP    = 2;			// Timer 4 Used by Asser
 }
 
 void InitUART2() // UART2 Gere le LIDAR
@@ -67,10 +68,10 @@ void InitPorts()
 	TRISAbits.TRISA2=1; // OSC - Oscillateur
 	TRISAbits.TRISA3=1; // RA3 - Mezzanine /* MODIF ! PISTE COUPEE */
 	TRISAbits.TRISA4=0; // RST - Ethernet RST
-	TRISAbits.TRISA7=1; // RA7 - Mezzanine
+	TRISAbits.TRISA7=0; // RA7 - Mezzanine
 	TRISAbits.TRISA8=0; // RA8 - Mezzanine // => Moteur balise
 	TRISAbits.TRISA9=0; // CS - Ethernet CS
-	TRISAbits.TRISA10=1; // RA10 - Mezzanine
+	TRISAbits.TRISA10=0; // RA10 - Mezzanine
 	
 	TRISBbits.TRISB0=1; // MOT1_I - Moteurs
 	TRISBbits.TRISB1=1; // MOT3_I - Moteurs
@@ -116,10 +117,8 @@ void InitPorts()
 	RPOR8bits.RP16R = 0b00101;	//TX RP16
     RPINR19bits.U2RXR = 3; //RX RP3
 
-	//Gestion balise
-	RPINR7bits.IC1R = 4;  	// Capteur effet hall
-	RPINR7bits.IC2R = 17;  	// Capteur laser 1
-	RPINR10bits.IC7R = 18; 	// Capteur laser 2
+	// Capteur de couleur OUT  
+	RPINR7bits.IC1R 	= 4;		//RP4
 
 	RPINR0bits.INT1R = 2; // Recepteur IR
 
@@ -146,6 +145,36 @@ void Init_Timer2(void)
 	IEC0bits.T2IE = 1; 		//Enable Timer2 interrupt
 	T2CONbits.TON = 1;		//Timer enabled
 }
+
+void Init_Input_Capture(void)
+{
+	// Use Timer 3 for IC1
+	Init_Timer3();
+
+	// Set IC1 to Capture
+	IC1CONbits.ICM		= 0;		// Disable Input Capture 1 Module
+	IC1CONbits.ICTMR	= 0;		// Select Timer 3 as the time base
+	IC1CONbits.ICI		= 0b01;		// Interrupt on every 2nd capture event
+	IC1CONbits.ICM		= 0b101;	// Capture mode, every 16th rising edge	
+
+	IFS0bits.IC1IF = 0;
+	IEC0bits.IC1IE = 1;
+}
+
+void Init_Timer3(void)
+{
+//	T3CONbits.TON 	= 0;	//Stops the timer
+//	T3CONbits.TSIDL = 0;
+//	T3CONbits.TGATE = 0;
+//	T3CONbits.TCS	= 0;
+	T3CONbits.TCKPS = 0b01; //Prescaler set to 1:8
+
+	IFS0bits.T3IF = 0; 		//Clear Timer3 Interrupt Flag
+	IEC0bits.T3IE = 0; 		//Disable Timer3 interrupt	
+	
+	T3CONbits.TON = 1;		//Starts the timer
+}
+
 
 void Init_Timer4(void)
 {

@@ -80,7 +80,7 @@ unsigned char ptr_read_buffer_uart=0;
 //Variable Capteur Couleur
 unsigned int Cpt_Tmr2_Capteur_Couleur = 0;
 unsigned int Tab_Capteur_Couleur[8] = {0};
-unsigned char etat_Capteur_Couleur = 0,alim_capteur_couleur=0;
+unsigned char etat_Capteur_Couleur = 0,alim_capteur_couleur=1;
 
 
 void _ISR __attribute__((__no_auto_psv__)) _AddressError(void)
@@ -99,7 +99,7 @@ int main(void)
 	unsigned char i;
 	unsigned char etatCouleur = 2;
 	static DWORD dwLastIP = 0;
-	
+
 	Trame trame;		
 
 	Trame Couleur_Equipe;
@@ -186,14 +186,14 @@ int main(void)
 
 	InitClk(); 		// Initialisation de l'horloge
 	InitPorts(); 	// Initialisation des ports E/S
-    MOT1L = 0;
-	MOT1H = 0;
+    MOT1L = 1;
+	MOT1H = 1;
 	MOT2L = 0;
 	MOT2H = 0;
 	MOT3L = 0;
 	MOT3H = 0;
-	MOT4L = 0;
-	MOT4H = 0;
+	MOT4L = 1;
+	MOT4H = 1;
 	
 	LATAbits.LATA8 = 0; // (moteur balise)
 
@@ -214,7 +214,7 @@ int main(void)
 	
 	// Initialize Stack and application related NV variables into AppConfig.
 	InitAppConfig();
-	
+	Init_Input_Capture();	
 	UDPInit();
     StackInit();	
  	UDPPerformanceTask();
@@ -225,148 +225,11 @@ int main(void)
 	InitADC();
 	InitDMA();
 
-	// Init Timer3
-	T3CONbits.TCKPS = 0b11;	// 1:256 Prescaler
-	PR3 = 0xFFFF;			// Time to autoreload
-	IFS0bits.T3IF = 0;		// Interrupt flag cleared
-	IEC0bits.T3IE = 0;		// Interrupt disabled
-	T3CONbits.TON = 1;		// Timer enabled
-
-		// Initialize the Input Capture Module
-	IC1CONbits.ICM = 0b00; // Disable Input Capture 1 module
-	IC1CONbits.ICTMR = 0; // Select Timer3 as the IC1 Time base
-	IC1CONbits.ICI = 0b00; // Interrupt on every capture event
-	IC1CONbits.ICM = 0b011; // Generate capture event on every Rising edge
-	// Enable Capture Interrupt And Timer3
-	IPC0bits.IC1IP = 3; // Setup IC1 interrupt priority level
-	IFS0bits.IC1IF = 0; // Clear IC1 Interrupt Status Flag
-	IEC0bits.IC1IE = 1; // Enable IC1 interrupt
-	// Initialize the Input Capture Module
-	IC2CONbits.ICM = 0b00; // Disable Input Capture 1 module
-	IC2CONbits.ICTMR = 0; // Select Timer3 as the IC1 Time base
-	IC2CONbits.ICI = 0b00; // Interrupt on every capture event
-	IC2CONbits.ICM = 0b011; // Generate capture event on every edge // change
-	// Enable Capture Interrupt And Timer3
-	IPC1bits.IC2IP = 2; // Setup IC1 interrupt priority level
-	IFS0bits.IC2IF = 0; // Clear IC1 Interrupt Status Flag
-	IEC0bits.IC2IE = 1; // Enable IC1 interrupt
-	// Initialize the Input Capture Module
-	IC7CONbits.ICM = 0b00; // Disable Input Capture 1 module
-	IC7CONbits.ICTMR = 0; // Select Timer3 as the IC1 Time base
-	IC7CONbits.ICI = 0b00; // Interrupt on every capture event
-	IC7CONbits.ICM = 0b011; // Generate capture event on every edge // change
-	// Enable Capture Interrupt And Timer3
-	IPC5bits.IC7IP = 1; // Setup IC1 interrupt priority level
-	IFS1bits.IC7IF = 0; // Clear IC1 Interrupt Status Flag
-	IEC1bits.IC7IE = 1; // Enable IC1 interrupt
-
-
 	DelayMs(500); 
 
-	
-
-	/*while(1)
-  	{	
-    	pwm(MOTEUR_4,4000);		// Moteur benne
-	}*/
 	while(1)
 	{
 		// Gestion Balise
-		if(Fin_d_angle_bas == 1)
-		{
-			Fin_d_angle_bas = 0;
-			messbaliserapide[0] = UDP_ID;
-			messbaliserapide[1] = CMD_REPONSE_CAPTEUR;
-			messbaliserapide[2] = ID_CAPTEUR_BALISE_1;
-
-			envoiBaliserapide.nbChar = 3;
-			for(i=0;i<2;i++)
-			{
-				angle = (float)(front_rapide[IDCAPTEUR_BAS][i]) / (float)(periode_tour) * 36000;
-				messbaliserapide[envoiBaliserapide.nbChar+i*2] = (unsigned char)((unsigned int)angle >> 8) & 0xFF;
-				messbaliserapide[envoiBaliserapide.nbChar+1+i*2] = (unsigned char)((unsigned int)angle     ) & 0xFF;
-			}
-			envoiBaliserapide.nbChar = 7;	
-			//EnvoiUserUdp(envoiBaliserapide);
-		}
-
-		if(Fin_d_angle_haut == 1)
-		{
-			Fin_d_angle_haut = 0;
-			messbaliserapide[0] = UDP_ID;
-			messbaliserapide[1] = CMD_REPONSE_CAPTEUR;
-			messbaliserapide[2] = ID_CAPTEUR_BALISE_2;
-
-			envoiBaliserapide.nbChar = 3;
-			for(i=0;i<2;i++)
-			{
-				angle = (float)(front_rapide[IDCAPTEUR_HAUT][i]) / (float)(periode_tour) * 36000;
-				messbaliserapide[envoiBaliserapide.nbChar+i*2] = (unsigned char)((unsigned int)angle >> 8) & 0xFF;
-				messbaliserapide[envoiBaliserapide.nbChar+1+i*2] = (unsigned char)((unsigned int)angle     ) & 0xFF;
-			}
-			envoiBaliserapide.nbChar = 7;	
-			//EnvoiUserUdp(envoiBaliserapide);
-		}
-
-
-		// Gestion Balise
-		if(Fin_de_tour == 1)
-		{
-			Fin_de_tour = 0;
-			
-			for(i=0;i<nombre_angles[IDCAPTEUR_HAUT];i++)
-			{
-				angle = (float)(buffer_fronts[IDCAPTEUR_HAUT][i]) / (float)(periode_tour) * 36000;
-				buffer_angles[IDCAPTEUR_HAUT][2*i]   = (unsigned char)((unsigned int)angle >> 8) & 0xFF;
-				buffer_angles[IDCAPTEUR_HAUT][2*i+1] = (unsigned char)((unsigned int)angle     ) & 0xFF;
-			}
-			for(i=0;i<nombre_angles[IDCAPTEUR_BAS];i++)
-			{
-				angle = (float)(buffer_fronts[IDCAPTEUR_BAS][i]) / (float)(periode_tour) * 36000;
-				buffer_angles[IDCAPTEUR_BAS][2*i]   = (unsigned char)((unsigned int)angle >> 8) & 0xFF;
-				buffer_angles[IDCAPTEUR_BAS][2*i+1] = (unsigned char)((unsigned int)angle     ) & 0xFF;
-			}
-
-			messbalise[0] = UDP_ID;
-			messbalise[1] = TRAME_DETECTION_BALISE;
-			messbalise[2] = ID_BALISE;
-			
-			//messbalise[3] = (int)(pos_x * 10)>>8;
-			//messbalise[4] = (int)(pos_x * 10)&0x00FF;
-			//messbalise[5] = (int)(pos_y * 10)>>8;
-			//messbalise[6] = (int)(pos_y * 10)&0x00FF;
-			//messbalise[7] = (unsigned int)(pos_teta*36000/(2*PI)+18000)>>8;
-			//messbalise[8] = (unsigned int)(pos_teta*36000/(2*PI)+18000)&0x00FF;
-
-			messbalise[2+1+0] = (periode_tour >> 8) & 0x00FF;
-			messbalise[3+1+0] = periode_tour & 0x00FF;
-			
-			
-			messbalise[4+1+0] = nombre_angles[IDCAPTEUR_HAUT];
-			messbalise[5+1+0] = nombre_angles[IDCAPTEUR_BAS];
-       		
-			envoiBalise.nbChar = 6+1+0;
-			
-       		for(i = 0; i < nombre_angles[IDCAPTEUR_HAUT]; i++)
-			{
-				messbalise[envoiBalise.nbChar+i*2] = buffer_angles[IDCAPTEUR_HAUT][2*i];	//MSB
-       			messbalise[envoiBalise.nbChar+1+i*2] = buffer_angles[IDCAPTEUR_HAUT][2*i+1]; //LSB
-			}
-			
-			envoiBalise.nbChar += nombre_angles[IDCAPTEUR_HAUT]*2;
-			
-			for(i = 0; i < nombre_angles[IDCAPTEUR_BAS]; i++)
-			{
-				messbalise[envoiBalise.nbChar+i*2] = buffer_angles[IDCAPTEUR_BAS][2*i];	 //MSB
-       			messbalise[envoiBalise.nbChar+1+i*2] = buffer_angles[IDCAPTEUR_BAS][2*i+1]; //LSB
-			}
-			
-			envoiBalise.nbChar += nombre_angles[IDCAPTEUR_BAS]*2;
-			
-			EnvoiUserUdp(envoiBalise);
-			envoiBalise.nbChar = 0;
-		}
-		// Fin gestion balise
 		//Fin Gestion LIDAR	
 		if(Demande_lidar)	
 		{
@@ -781,44 +644,10 @@ void __attribute__((interrupt,auto_psv)) _U2RXInterrupt(void)
 }
 
 void __attribute__((__interrupt__,__auto_psv__)) _T2Interrupt(void) // 3.2µs (312 itérations sur 1ms)
-{
-	if(cpt_balise<10000)
-		cpt_balise++;
-	if(cpt_balise<pwm_balise)
-		LATAbits.LATA8 = 1;
-	else
-		LATAbits.LATA8 = 0;
-	
+{	
 	IFS0bits.T2IF = 0; 		//Clear Timer1 Interrupt flag
 }
 
-void __attribute__((interrupt, no_auto_psv)) _IC1Interrupt(void)
-{
-	unsigned char i;
-	TMR3=0;
-	IC2CONbits.ICM = 0b011;
-	IC7CONbits.ICM = 0b011;
-	periode_tour = IC1BUF;
-	
-	IFS0bits.IC1IF=0;
-
-	nombre_angles[IDCAPTEUR_HAUT] = ptr_fronts_haut;
-	nombre_angles[IDCAPTEUR_BAS] = ptr_fronts_bas;
-
-	for(i=0;i<nombre_angles[IDCAPTEUR_HAUT];i++)
-	{
-		buffer_fronts[IDCAPTEUR_HAUT][i] = 	buffer_fronts_temp[IDCAPTEUR_HAUT][i];
-	}
-	for(i=0;i<nombre_angles[IDCAPTEUR_BAS];i++)
-	{
-		buffer_fronts[IDCAPTEUR_BAS][i] = 	buffer_fronts_temp[IDCAPTEUR_BAS][i];
-	}
-	
-	ptr_fronts_haut=0;
-	ptr_fronts_bas=0;
-	Fin_de_tour=1;
-	
-}
 
 void __attribute__((interrupt, no_auto_psv)) _IC2Interrupt(void)
 {
