@@ -160,7 +160,7 @@ Trame Retour_Capteur_Onoff(unsigned char id_capteur)
 	switch(id_capteur)
 	{
 		case VACUOSTAT_BACK:
-			Valeurs[3] = !PORTCbits.RC1;
+			Valeurs[3] = PORTCbits.RC1;
 			break;
 		case VACUOSTAT_FRONT:
 			Valeurs[3] = PORTCbits.RC2;
@@ -941,6 +941,7 @@ Trame AnalyseTrame(Trame t)
 						MOT1H=1;
 						P2DC1 = 4000;
 					}
+					break;
 				case OPENVACUUM_BACK:
 					if(t.message[3])
 					{

@@ -80,7 +80,7 @@ unsigned char ptr_read_buffer_uart=0;
 //Variable Capteur Couleur
 unsigned int Cpt_Tmr2_Capteur_Couleur = 0;
 unsigned int Tab_Capteur_Couleur[8] = {0};
-unsigned char etat_Capteur_Couleur = 0,alim_capteur_couleur=1;
+unsigned char etat_Capteur_Couleur = 0,alim_capteur_couleur=0;
 
 
 void _ISR __attribute__((__no_auto_psv__)) _AddressError(void)
@@ -226,6 +226,7 @@ int main(void)
 	InitDMA();
 
 	DelayMs(500); 
+
 
 	while(1)
 	{
@@ -619,7 +620,7 @@ void __attribute__ ((interrupt, no_auto_psv)) _T4Interrupt(void)
 	}
 	else
 	{
-		LED = 0;
+		//LED = 0;
 		S2  = 0;
 		S3  = 0; 
 		etat_Capteur_Couleur=4;

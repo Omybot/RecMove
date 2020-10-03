@@ -128,14 +128,14 @@ Trame AnalyseTrame(Trame t);
 #define TRAME_PILOTAGE_ONOFF 			0x65
 
 // Liste des actionneurs
-#define ALIMENTATION_CAPTEUR_COULEUR	0x01
-#define MAKEVACUUM_BACK					0x11
-#define MAKEVACUUM_FRONT				0x13
-#define OPENVACUUM_BACK					0x20
-#define OPENVACUUM_FRONT				0x22
+#define ALIMENTATION_CAPTEUR_COULEUR	0x00
+#define MAKEVACUUM_BACK					0x14
+#define MAKEVACUUM_FRONT				0x12
+#define OPENVACUUM_BACK					0x23
+#define OPENVACUUM_FRONT				0x21
 
-#define VACUOSTAT_BACK					0x11
-#define VACUOSTAT_FRONT					0x13
+#define VACUOSTAT_BACK					0x14
+#define VACUOSTAT_FRONT					0x12
 
 // Capteurs
 #define CMD_DEMANDE_COULEUR_EQUIPE		0x72
