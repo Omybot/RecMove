@@ -11,7 +11,6 @@
 #include <math.h>
 #include <p33FJ128MC804.h>
 #include "OurFiles/Pilotage.h"
-#include "OurFiles/CDS5516.h"
 #include "OurFiles/FonctionsUc.h"
 
 #define UART_BUFFER_SIZE	100
@@ -36,26 +35,8 @@ static void InitAppConfig(void);
 
 extern double pos_x,pos_y,pos_teta;
 
-unsigned int periode_tour;
-char Fin_de_tour, Fin_d_angle_bas = 0,Fin_d_angle_haut = 0;
-char capteurHautPrec = 0;
-char capteurBasPrec = 0;
-char oldMagnet = 0;
-unsigned char nombre_angles[2]; // n angles (8 maxi)
-unsigned char buffer_angles[2][2*8]; // debut_1_MSB; debut_1_LSB; fin_1_MSB; fin_1_LSB; debut_2_MSB; debut_2_LSB; fin_2_MSB; fin_2_LSB; ...;debut_n_MSB; debut_n_LSB; fin_n_MSB; fin_n_LSB; 
-unsigned char nombre_fronts[2]; // n fronts (8 maxi)
-unsigned int buffer_fronts[2][8]; // Valeurs bruts TMR2
-unsigned int buffer_fronts_temp[2][8]; // Valeurs bruts TMR2
-unsigned int front_rapide[2][2];
-unsigned int ptr_fronts_bas; // ptr pour l'enregistrement
-unsigned int ptr_fronts_haut; // 
-unsigned int hall_front;
-unsigned int motor_speed,Cpt_20ms=0;
-float angle;
-
 unsigned int IR_result;
 
-unsigned int cpt_balise,pwm_balise;
 extern unsigned int ADC_Results[8],cpu_status;
 extern double cons_pos[N];
 extern double real_pos[N];
@@ -97,18 +78,9 @@ void _ISR __attribute__((__no_auto_psv__)) _StackError(void)
 int main(void)
 {
 	unsigned char i;
-	unsigned char etatCouleur = 2;
 	static DWORD dwLastIP = 0;
 
-	Trame trame;		
-
-	Trame Couleur_Equipe;
-	static BYTE Couleur[3];
-	Couleur_Equipe.nbChar = 3;
-	Couleur[0] = UDP_ID;
-	Couleur[1] = CMD_REPONSE_COULEUR_EQUIPE;
-	Couleur[2] = PORTAbits.RA7;
-	Couleur_Equipe.message = Couleur;
+	Trame trame;
 
 	Trame envoiFin;
 	static BYTE mess[2];
@@ -139,51 +111,34 @@ int main(void)
 	envoiUART.message = messUART;
 	envoiUART.nbChar = 53;
 	
-	
-	Trame envoiTest;
-	static BYTE messTest[19];
-	messTest[0] = UDP_ID;
-	messTest[1] = UDP_ID;
-	messTest[2] = 7;
-	messTest[3] = 'M';
-	messTest[4] = 'S';
-	messTest[5] = '0';
-	messTest[6] = '0';
-	messTest[7] = '0';
-	messTest[8] = '0';
-	messTest[9] = '0';
-	messTest[10] = '7';
-	messTest[11] = '2';
-	messTest[12] = '5';
-	messTest[13] = '0';
-	messTest[14] = '0';
-	messTest[15] = '0';
-	messTest[16] = '0';
-	messTest[17] = '1';
-	messTest[18] = '\n';
+	Trame envoiDemandeHokuyo;
+	static BYTE messDemandeHokuyo[19];
+	messDemandeHokuyo[0] = UDP_ID;
+	messDemandeHokuyo[1] = UDP_ID;
+	messDemandeHokuyo[2] = 7;
+	messDemandeHokuyo[3] = 'M';
+	messDemandeHokuyo[4] = 'S';
+	messDemandeHokuyo[5] = '0';
+	messDemandeHokuyo[6] = '0';
+	messDemandeHokuyo[7] = '0';
+	messDemandeHokuyo[8] = '0';
+	messDemandeHokuyo[9] = '0';
+	messDemandeHokuyo[10] = '7';
+	messDemandeHokuyo[11] = '2';
+	messDemandeHokuyo[12] = '5';
+	messDemandeHokuyo[13] = '0';
+	messDemandeHokuyo[14] = '0';
+	messDemandeHokuyo[15] = '0';
+	messDemandeHokuyo[16] = '0';
+	messDemandeHokuyo[17] = '1';
+	messDemandeHokuyo[18] = '\n';
 
 	//MS0000072500001
 	
-	envoiTest.message = messTest;
-	envoiTest.nbChar = 19;
+	envoiDemandeHokuyo.message = messDemandeHokuyo;
+	envoiDemandeHokuyo.nbChar = 19;
 	// V V [LF] 0 0 P [LF] 
 	
-		Trame envoiBalise;
-	static BYTE messbalise[60];
-	messbalise[0] = UDP_ID;
-	messbalise[1] = TRAME_DETECTION_BALISE;
-	messbalise[2] = ID_BALISE;
-	envoiBalise.message = messbalise;
-	envoiBalise.nbChar = 30;
-
-	Trame envoiBaliserapide;
-	static BYTE messbaliserapide[7];
-	messbaliserapide[0] = UDP_ID;
-	messbaliserapide[1] = TRAME_DETECTION_BALISE_RAPIDE;
-	envoiBaliserapide.message = messbaliserapide;
-	envoiBaliserapide.nbChar = 7;
-
-
 	InitClk(); 		// Initialisation de l'horloge
 	InitPorts(); 	// Initialisation des ports E/S
     MOT1L = 1;
@@ -195,8 +150,6 @@ int main(void)
 	MOT4L = 1;
 	MOT4H = 1;
 	
-	LATAbits.LATA8 = 0; // (moteur balise)
-
 	Init_Timer2();	// Initialisation Timer2
 	Init_Timer4();	// Initialisation Timer4
 	Init_Timer5();
@@ -227,15 +180,12 @@ int main(void)
 
 	DelayMs(500); 
 
-
 	while(1)
 	{
-		// Gestion Balise
-		//Fin Gestion LIDAR	
 		if(Demande_lidar)	
 		{
 			Demande_lidar=0;
-			EnvoiUART(envoiTest);
+			EnvoiUART(envoiDemandeHokuyo);
 			messUART[3] = (int)(pos_x * 10)>>8;
 			messUART[4] = (int)(pos_x * 10)&0x00FF;
 			messUART[5] = (int)(pos_y * 10)>>8;
@@ -283,12 +233,6 @@ int main(void)
 				ptr_read_buffer_uart=0;
 		}
 		//Fin Gestion LIDAR	
-		if(etatCouleur != PORTAbits.RA7)
-		{
-			Couleur[2] = PORTAbits.RA7;
-  			EnvoiUserUdp (Couleur_Equipe);
-  			etatCouleur = PORTAbits.RA7;
-  		}
 		if(flag_envoi) 
 		{	
 			scan=0;
@@ -526,7 +470,6 @@ void __attribute__ ((interrupt, no_auto_psv)) _T4Interrupt(void)
 	
 	flag = 0;
 	courrier = 1;
-	cpt_balise=0;
 	if(timeout_lidar<200) timeout_lidar++;
 	motor_flag = Motors_Task(); // Si prend trop de ressource sur l'udp, inclure motortask dans le main	
 		
@@ -640,8 +583,7 @@ void __attribute__((interrupt,auto_psv)) _U2RXInterrupt(void)
 		Buffer_passerelle_udpuart[ptr_write_buffer_uart_rec++] = U2RXREG;
 		if(ptr_write_buffer_uart_rec>240)
 			ptr_write_buffer_uart_rec=0;
-	}
-			
+	}			
 }
 
 void __attribute__((__interrupt__,__auto_psv__)) _T2Interrupt(void) // 3.2µs (312 itérations sur 1ms)
@@ -649,38 +591,18 @@ void __attribute__((__interrupt__,__auto_psv__)) _T2Interrupt(void) // 3.2µs (31
 	IFS0bits.T2IF = 0; 		//Clear Timer1 Interrupt flag
 }
 
-
 void __attribute__((interrupt, no_auto_psv)) _IC2Interrupt(void)
 {
-	buffer_fronts_temp[IDCAPTEUR_BAS][ptr_fronts_bas]=IC2BUF;
-	if(ptr_fronts_bas < 8) ptr_fronts_bas++;
-	 
-	if(ptr_fronts_bas %2 == 0)
-	{
-		front_rapide[IDCAPTEUR_BAS][1] = buffer_fronts_temp[IDCAPTEUR_BAS][ptr_fronts_bas-1]; // Front descendant
-		Fin_d_angle_bas = 1;
-	}
-	else
-	{
-		front_rapide[IDCAPTEUR_BAS][0] = buffer_fronts_temp[IDCAPTEUR_BAS][ptr_fronts_bas-1]; // Front montant
-	}
+	// C'était la balise, faut enlever autre chose ?
+
 	IC2CONbits.ICM = 0b001;
 	IFS0bits.IC2IF=0;
 }
 
 void __attribute__((interrupt, no_auto_psv)) _IC7Interrupt(void)
 {
-	buffer_fronts_temp[IDCAPTEUR_HAUT][ptr_fronts_haut]=IC7BUF;		
-	if(ptr_fronts_haut < 8) ptr_fronts_haut++;
-	if(ptr_fronts_haut %2 == 0)
-	{
-		front_rapide[IDCAPTEUR_HAUT][1] = buffer_fronts_temp[IDCAPTEUR_HAUT][ptr_fronts_haut-1]; // Front descendant
-		Fin_d_angle_haut = 1;
-	}
-	else
-	{
-		front_rapide[IDCAPTEUR_HAUT][0] = buffer_fronts_temp[IDCAPTEUR_HAUT][ptr_fronts_haut-1]; // Front montant
-	}
+	// C'était la balise, faut enlever autre chose ?
+
 	IC7CONbits.ICM = 0b001;
 	IFS1bits.IC7IF=0;
 }

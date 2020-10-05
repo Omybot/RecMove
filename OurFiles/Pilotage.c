@@ -3,7 +3,6 @@
 #include "uart2.h"
 #include <uart2.h>
 #include <math.h>
-#include "CDS5516.h"
 
 // ATTENTION /!\ Ces fonctions ne doivent pas être bloquantes
 
@@ -18,7 +17,6 @@ unsigned int Valeur_Capteur_Couleur = 24;
 unsigned int Cpt_Tmr_Periode = 0;
 
 extern unsigned int IR_result;
-extern unsigned int pwm_balise;
 extern unsigned char flag_envoi_uart,buffer_envoi_uart[UART_BUFFER_SIZE],ptr_write_buffer_uart;
 extern unsigned char Demande_lidar;
 extern unsigned int positions_xy[2][300];
@@ -55,46 +53,6 @@ unsigned char scan;
 
 unsigned int Send_Variable_Capteur_Couleur(void){
 	return Valeur_Capteur_Couleur;
-}
-
-Trame Couleur_Balle(void)
-{
-
-	Trame Couleur_Balle;
-	static BYTE Couleur[18];
-	Couleur_Balle.nbChar = 18;
-
-	Couleur[0] = 0xC4;
-	Couleur[1] = CMD_DEBUG; //CMD_REPONSE_COULEUR_BALLE
-
-	Couleur[2] = Tab_Capteur_Couleur[0]>>8;
-	Couleur[3] = Tab_Capteur_Couleur[0]&0x00FF;
-
-	Couleur[4] = Tab_Capteur_Couleur[1]>>8;
-	Couleur[5] = Tab_Capteur_Couleur[1]&0x00FF;
-
-	Couleur[6] = Tab_Capteur_Couleur[2]>>8;
-	Couleur[7] = Tab_Capteur_Couleur[2]&0x00FF;
-
-	Couleur[8] = Tab_Capteur_Couleur[3]>>8;
-	Couleur[9] = Tab_Capteur_Couleur[3]&0x00FF;
-
-	Couleur[10] = Tab_Capteur_Couleur[4]>>8;
-	Couleur[11] = Tab_Capteur_Couleur[4]&0x00FF;
-
-	Couleur[12] = Tab_Capteur_Couleur[5]>>8;
-	Couleur[13] = Tab_Capteur_Couleur[5]&0x00FF;
-
-	Couleur[14] = Tab_Capteur_Couleur[6]>>8;
-	Couleur[15] = Tab_Capteur_Couleur[6]&0x00FF;
-
-	Couleur[16] = Tab_Capteur_Couleur[7]>>8;
-	Couleur[17] = Tab_Capteur_Couleur[7]&0x00FF;
-
-	Couleur_Balle.message = Couleur;
-
-	return Couleur_Balle;
-
 }
 
 Trame CouleurRGB(int Id)
@@ -167,10 +125,14 @@ Trame Retour_Capteur_Onoff(unsigned char id_capteur)
 			break;
 	}
 	
-	
 	Etat_Valeurs.message = Valeurs;
 
 	return Etat_Valeurs;
+}
+
+void PiloteMoteurPosition(unsigned char id, unsigned int position)
+{
+	//pwm à régler
 }
 
 void EnvoiUART(Trame t)
@@ -191,7 +153,6 @@ Trame Retour_Valeurs_Analogiques(void)
 	static BYTE Valeurs[14];
 	Etat_Valeurs.nbChar = 14;
 	
-
 	Valeurs[0] = UDP_ID;
 	Valeurs[1] = CMD_REPONSE_VALEURS_ANALOGIQUES;
 	Valeurs[2] = ADC_Results[0] >> 8;
@@ -207,7 +168,6 @@ Trame Retour_Valeurs_Analogiques(void)
 	Valeurs[12] = ADC_Results[5] >> 8;
 	Valeurs[13] = ADC_Results[5] & 0xFF;	
 	
-
 	Etat_Valeurs.message = Valeurs;
 
 	return Etat_Valeurs;
@@ -219,7 +179,6 @@ Trame Retour_Valeurs_Numeriques(void)
 	static BYTE Valeurs[8];
 	Etat_Valeurs.nbChar = 8;
 	
-
 	Valeurs[0] = UDP_ID;
 	Valeurs[1] = CMD_REPONSE_VALEURS_NUMERIQUES;
 	Valeurs[2] = PORTA>>8;
@@ -235,18 +194,88 @@ Trame Retour_Valeurs_Numeriques(void)
 	return Etat_Valeurs;
 }
 
+void PiloteActionneurOnOff(unsigned char id, OnOff onOff)
+{
+	switch (id)
+	{
+		case ALIMENTATION_CAPTEUR_COULEUR:
+			alim_capteur_couleur = onOff;
+			break;
+
+		case MAKEVACUUM_BACK:
+			if(onOff)
+			{
+				PWM2CON1bits.PEN1L = 1;
+				MOT1L=0;
+				P2DC1 = 4000;
+			}
+			else
+			{
+				PWM2CON1bits.PEN1L = 0;
+				MOT1L=1;
+				P2DC1 = 4000;
+			}
+			break;
+
+		case MAKEVACUUM_FRONT:
+			if(onOff)
+			{
+				PWM2CON1bits.PEN1H = 1;
+				MOT1H=0;
+				P2DC1 = 4000;
+			}
+			else
+			{
+				PWM2CON1bits.PEN1H = 0;
+				MOT1H=1;
+				P2DC1 = 4000;
+			}
+			break;
+
+		case OPENVACUUM_BACK:
+			if(onOff)
+			{
+				PWM1CON1bits.PEN1L = 1;
+				MOT4L=0;
+				P1DC1 = 4000;
+			}
+			else
+			{
+				PWM1CON1bits.PEN1L = 0;
+				MOT4L=1;
+				P1DC1 = 4000;
+			}
+			break;
+
+		case OPENVACUUM_FRONT:
+			if(onOff)
+			{
+				PWM1CON1bits.PEN1H = 1;
+				MOT4H=0;
+				P1DC1 = 4000;
+			}
+			else
+			{
+				PWM1CON1bits.PEN1H = 0;
+				MOT4H=1;
+				P1DC1 = 4000;
+			}
+			break;
+	}
+}
 
 void delay(void)
 {
     long i = 10; 
     while(i--);
 }
+
 void delayms(void) 
 {
 	long i = 1600000; //400ms
     while(i--);
 }
-//Delay seconde
+
 void delays(void) 
 {
 	long i = 4000000; //seconde
@@ -255,72 +284,9 @@ void delays(void)
 
 // DEBUG
 
-Trame PiloteDebug0(Trame t)
+Trame PiloteDebug(Trame t, int debugNo)
 {
 	return t;
-}
-
-Trame PiloteDebug1(Trame t)
-{
-	return t;
-}
-
-Trame PiloteDebug2(Trame t)
-{
-	return t;
-}
-
-Trame PiloteDebug3(Trame t)
-{
-	return t;
-}
-
-Trame PiloteDebug4(Trame t)
-{
-	return t;
-}
-
-Trame PiloteDebug5(Trame t)
-{
-	return t;
-}
-
-Trame PiloteDebug6(Trame t)
-{
-	return t;
-}
-
-Trame PiloteDebug7(Trame t)
-{
-	return t;
-}
-
-Trame PiloteDebug8(Trame t)
-{
-	return t;
-}
-
-Trame PiloteDebug9(Trame t)
-{
-	return t;
-}
-
-
-
-//Fonction qui renvoie sous forme de trame(UDP) la couleur de l'equipe
-Trame Couleur_Equipe(void)
-{
-	Trame Etat_Couleur_Equipe;
-	static BYTE Couleur[3];
-	Etat_Couleur_Equipe.nbChar = 3;
-
-	Couleur[0] = UDP_ID;
-	Couleur[1] = CMD_REPONSE_COULEUR_EQUIPE;
-	Couleur[2] = PORTAbits.RA7;
-
-	Etat_Couleur_Equipe.message = Couleur;
-	
-	return Etat_Couleur_Equipe;
 }
 
 Trame PiloteGotoXY(int x,int y, unsigned char x_negatif, unsigned char y_negatif)
@@ -354,15 +320,12 @@ Trame StatusMonitor(void)
 	tableau[0] = UDP_ID; // identifiant trame
 	tableau[1] = CMD_REPONSE_BUFF_STATUS;
 
-	
-
 	if(buff_status_ptr > last_send_status_ptr)
 		nbr_to_send = buff_status_ptr - last_send_status_ptr;
 	else
 		nbr_to_send = 64 - last_send_status_ptr + buff_status_ptr;
 
 	//nbr_to_send = (buff_status_ptr - last_send_status_ptr)%64;
-
 
 	last_send_status_ptr=buff_status_ptr;
 	if(nbr_to_send>35) nbr_to_send=35;
@@ -387,13 +350,6 @@ Trame StatusMonitor(void)
 	return trame;
 }
 
-
-void PilotePIDInit(void)
-{
-	InitProp();
-}
-
-
 Trame PilotePositionXYT()
 {
 	//double x,y,teta;
@@ -415,23 +371,7 @@ Trame PilotePositionXYT()
 	return trame;
 }
 
-Trame PilotePIDRessource()
-{
-	Trame trame;
-	static BYTE tableau[4];
-	trame.nbChar = 4;
-	
-	tableau[0] = 1;
-	tableau[1] = 0x66;
-	tableau[2] = PID_ressource_used>>8;
-	tableau[3] = PID_ressource_used&0x00FF;
-	
-	trame.message = tableau;
-	
-	return trame;
-}
-
-Trame ReponseEcho()
+Trame ReponseConnexion()
 {
 	Trame trame;
 	static BYTE tableau[2];
@@ -445,47 +385,6 @@ Trame ReponseEcho()
 	return trame;
 }
 
-
-void PilotePIDManual(unsigned int gauche,unsigned int droite)
-{
-	manual_pid((double)gauche,(double)droite);
-}
-
-
-void PilotePIDFeedforward(unsigned int value)
-{
-	feedforward = (double)value;
-}
-
-Trame PilotePIDErreurs()
-{
-	Trame trame;
-	static BYTE tableau[10];
-	trame.nbChar = 10;
-	unsigned int data[4];
-	
-	tableau[0] = 1;
-	tableau[1] = 0x48;
-	
-	data[0] = (unsigned int)fabs(pwm_cor[0]);
-	data[1] = (unsigned int)fabs(pwm_cor[1]);
-	data[2] = (unsigned int)fabs(real_pos[0]);
-	data[3] = (unsigned int)fabs(real_pos[1]);
-
-
-	tableau[2] = (int)pwm_cor[0]>>8;
-	tableau[3] = (int)pwm_cor[0]&0x00FF;
-	tableau[4] = (int)pwm_cor[1]>>8;
-	tableau[5] = (int)pwm_cor[1]&0x00FF;
-	tableau[6] = (int)raw_position[0]>>8;
-	tableau[7] = (int)raw_position[0]&0x00FF;
-	tableau[8] = (int)raw_position[1]>>8;
-	tableau[9] = (int)raw_position[1]&0x00FF;
-	
-	trame.message = tableau;
-	
-	return trame;
-}
 void PilotePIDCoeffs(unsigned int new_kp, unsigned int new_ki, unsigned int new_kd)
 {
 	double coeffs[N*3]={DEFAULT_KP,DEFAULT_KI,DEFAULT_KD,DEFAULT_KP,DEFAULT_KI,DEFAULT_KD};
@@ -497,88 +396,6 @@ void PilotePIDCoeffs(unsigned int new_kp, unsigned int new_ki, unsigned int new_
 	coeffs[5] = (double)new_kd;
 	
 	set_pid(coeffs);
-}
-
-Trame PiloteGetPosition(unsigned char cote)
-{
-	Trame trame;
-	static BYTE tableau[6];
-	trame.nbChar = 6;
-	double position;	
-
-	tableau[0] = 1;
-	tableau[1] = 0x42;
-	tableau[2] = cote;
-	
-	switch(cote)
-	{
-		case 3:	position = Motors_GetPosition(0);
-				break;
-		case 4:	position = Motors_GetPosition(1);
-				break;
-		default:	break;
-	}
-
-	tableau[3] = ((unsigned int)fabs(position))>>8;
-	tableau[4] = ((unsigned int)fabs(position))&0x00FF;
-	if(position<0) 	tableau[5] = 1;
-	else			tableau[5] = 0;
-	trame.message = tableau;
-	
-	return trame;
-}
-
-Trame PiloteGetRawPosition()
-{
-	Trame trame;
-	static BYTE tableau[15];
-	trame.nbChar = 15;
-	
-	tableau[0] = 1;
-	tableau[1] = CMD_DEMANDE_BUFF_POSITION;
-	tableau[2] = 0;
-	
-
-	tableau[3] = position_buffer[0]>>8;
-	tableau[4] = position_buffer[0]&0x00FF;
-	tableau[5] = position_buffer[1]>>8;
-	tableau[6] = position_buffer[1]&0x00FF;
-	tableau[7] = position_buffer[2]>>8;
-	tableau[8] = position_buffer[2]&0x00FF;
-	tableau[9] = position_buffer[3]>>8;
-	tableau[10] = position_buffer[3]&0x00FF;
-	tableau[11] = position_buffer[4]>>8;
-	tableau[12] = position_buffer[4]&0x00FF;
-	tableau[13] = position_buffer[5]>>8;
-	tableau[14] = position_buffer[5]&0x00FF;
-	
-	trame.message = tableau;
-	
-	return trame;
-}
-
-Trame PiloteGetLongPosition()
-{
-	Trame trame;
-	static BYTE tableau[10];
-	trame.nbChar = 10;
-	
-	tableau[0] = 1;
-	tableau[1] = 0x44;
-
-	tableau[2] = raw_position[0]>>24;
-	tableau[3] = raw_position[0]>>16;
-	tableau[4] = raw_position[0]>>8;
-	tableau[5] = raw_position[0]&0x00FF;
-	
-	tableau[6] = raw_position[1]>>24;
-	tableau[7] = raw_position[1]>>16;
-	tableau[8] = raw_position[1]>>8;
-	tableau[9] = raw_position[1]&0x00FF;
-	
-	trame.message = tableau;
-	
-	return trame;
 }
 
 // A faire : envoie consigne posiiton brut en pas codeur 2 parametres : [sens]8u ; [pascodeur]16u ;
@@ -685,7 +502,7 @@ int PiloteStop(unsigned char stopmode)
 // s : sens du recallage (Avant ou Arriere)
 int PiloteRecallage(Sens s)
 {	
-	// TODO : Bah alors, c'est pas encore codé feignasse ?
+	Calage(s);
 
 	return 1;
 }
@@ -712,53 +529,25 @@ Trame AnalyseTrame(Trame t)
 
 	// Les messages ne commencant pas par UDP_ID ne nous sont pas adressés (RecMove)
 	if(t.message[0] != UDP_ID)
+	{
+		t.message[0] = UDP_ID;
 		return t;
+	}
 
 	switch(t.message[1])
 	{
 		case CMD_DEBUG:
 			param1 = t.message[3];							// Numero
-			switch(param1)
-			{
-				case 0:
-					retour = PiloteDebug0(t);
-					break;
-				case 1:
-					retour = PiloteDebug1(t);
-					break;
-				case 2:
-					retour = PiloteDebug2(t);
-					break;
-				case 3:
-					retour = PiloteDebug3(t);
-					break;
-				case 4:
-					retour = PiloteDebug4(t);
-					break;
-				case 5:
-					retour = PiloteDebug5(t);
-					break;
-				case 6:
-					retour = PiloteDebug6(t);
-					break;
-				case 7:
-					retour = PiloteDebug7(t);
-					break;
-				case 8:
-					retour = PiloteDebug8(t);
-					break;
-				case 9:
-					retour = PiloteDebug9(t);
-					break;
-			}
+			retour = PiloteDebug(t, param1);
 			break;
 		
 		case CMD_AVANCER:
-			param1 = t.message[3] * 256 + t.message[4];		// Distance
-			if(t.message[2])								// Sens
-				PiloteAvancer(param1);
+			param1 = t.message[2];							// Sens
+			param2 = t.message[3] * 256 + t.message[4];		// Distance
+			if(param1)
+				PiloteAvancer(param2);
 			else
-				PiloteReculer(param1);
+				PiloteReculer(param2);
 			break;
 
 		case CMD_GOTOXY:
@@ -770,7 +559,8 @@ Trame AnalyseTrame(Trame t)
 			break;
 
 		case CMD_RECALLAGE:
-			Calage(t.message[2]);							// Sens
+			param1 = t.message[2];							// Sens
+			PiloteRecallage(param1);
 			break;
 
 		case CMD_PIVOTER:
@@ -833,16 +623,10 @@ Trame AnalyseTrame(Trame t)
 			break;
 
 		case TRAME_TEST_CONNEXION:
-			retour = ReponseEcho();
-			break;
-			
-		case CMD_DEMANDE_COULEUR_EQUIPE:
-			// Interrupteur couleur Equipe
-			retour = Couleur_Equipe();
+			retour = ReponseConnexion();
 			break;
 			
 		case CMD_OFFSETASSERV:
-
 			param1 = t.message[2]*256+t.message[3];			// X
 			param2 = t.message[4]*256+t.message[5];			// Y
 			param3 = t.message[6]*256+t.message[7];			// TETA
@@ -899,78 +683,15 @@ Trame AnalyseTrame(Trame t)
 			break;
 
 		case CMD_MOTEUR_POSITION:
-			switch (t.message[2])
-			{
-				case ID_MOTEUR_BALISE:
-					pwm_balise = t.message[3] * 256 + t.message[4];
-					//pwm(ID_MOTEUR_BALISE,(double)param1);
-					break;	
-			}
+			param1 = t.message[2];						// Id moteur
+			param2 = t.message[3] * 256 + t.message[4];	// Position
+			PiloteMoteurPosition(param1, param2);
 			break;
 
 		case TRAME_PILOTAGE_ONOFF:
-			switch (t.message[2])
-			{
-				case ALIMENTATION_CAPTEUR_COULEUR:
-					alim_capteur_couleur = t.message[3];
-					break;
-				case MAKEVACUUM_BACK:
-					if(t.message[3])
-					{
-						PWM2CON1bits.PEN1L = 1;
-						MOT1L=0;
-						P2DC1 = 4000;
-					}
-					else
-					{
-						PWM2CON1bits.PEN1L = 0;
-						MOT1L=1;
-						P2DC1 = 4000;
-					}
-					break;
-				case MAKEVACUUM_FRONT:
-					if(t.message[3])
-					{
-						PWM2CON1bits.PEN1H = 1;
-						MOT1H=0;
-						P2DC1 = 4000;
-					}
-					else
-					{
-						PWM2CON1bits.PEN1H = 0;
-						MOT1H=1;
-						P2DC1 = 4000;
-					}
-					break;
-				case OPENVACUUM_BACK:
-					if(t.message[3])
-					{
-						PWM1CON1bits.PEN1L = 1;
-						MOT4L=0;
-						P1DC1 = 4000;
-					}
-					else
-					{
-						PWM1CON1bits.PEN1L = 0;
-						MOT4L=1;
-						P1DC1 = 4000;
-					}
-					break;
-				case OPENVACUUM_FRONT:
-					if(t.message[3])
-					{
-						PWM1CON1bits.PEN1H = 1;
-						MOT4H=0;
-						P1DC1 = 4000;
-					}
-					else
-					{
-						PWM1CON1bits.PEN1H = 0;
-						MOT4H=1;
-						P1DC1 = 4000;
-					}
-					break;
-			}
+			param1 = t.message[2];						// Id actionneur
+			param2 = t.message[3];						// OnOff
+			PiloteActionneurOnOff(param1, (OnOff)param2);
 			break;
 		
 		case CMD_DEMANDE_CAPTEUR_ONOFF:

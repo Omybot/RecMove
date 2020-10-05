@@ -4,6 +4,13 @@
 #include "Types.h"
 #include "UserUdp.h"
 
+// Constantes des fonctions des actionneurs
+#define ON  1
+#define OFF 0
+
+#define RISING_EDGE 1
+#define FALLING_EDGE 0 
+
 // Moteur sens
 #define SENS_DROITE 3
 #define SENS_GAUCHE 2
@@ -16,51 +23,34 @@ typedef struct Rgb
   unsigned char blue;
 }Rgb;
 unsigned int Send_Variable_Capteur_Couleur(void);
-Trame Couleur_Balle(void);
 Trame CouleurRGB(int Id);
 double period2frequency(unsigned int period);
 Rgb frequency2RGB(double freqClear, double freqRed, double freqGreen, double freqBlue);
 
-Trame Retour_Capteur_Onoff(unsigned char id_capteur);
 void EnvoiUART(Trame t);
-
-Trame PiloteGotoXY(int x, int y, unsigned char x_negatif, unsigned char y_negatif);
-Trame ReponseEcho(void);
-Trame StatusMonitor(void);
-
-Trame PilotePIDRessource();
-void PilotePIDInit(void);
-Trame PiloteGetPosition(unsigned char cote);
-Trame PiloteGetRawPosition(void);
-Trame PiloteGetLongPosition(void);
-Trame PiloteGetBuffPosition(void);
-void PilotePIDCoeffs(unsigned int new_kp, unsigned int new_ki, unsigned int new_kd);
-void PilotePIDManual(unsigned int gauche,unsigned int droite);
-Trame PilotePIDErreurs(void);
-void PilotePIDFeedforward(unsigned int value);
-Trame Retour_Valeurs_Analogiques(void);
-Trame Retour_Valeurs_Numeriques(void);
-
-Trame PilotePositionXYT(void);
-Trame PiloteDemandeCapteurs(char numCapteur);
-Trame PiloteDemandeCapteur(char numCapteur);
-void PiloteLevagePosition(char avantOuArriere, int position);
-Trame PiloteCapteurs(char cote);
-
-// Constantes des fonctions des actionneurs
-#define ON  1
-#define OFF 0
-
-#define RISING_EDGE 1
-#define FALLING_EDGE 0 
-
 
 //Delay
 void delay(void);
 void delays(void);
 void delayms(void);
-//ASSERVISSEMENT
 
+Trame Retour_Capteur_Onoff(unsigned char id_capteur);
+Trame PiloteGotoXY(int x, int y, unsigned char x_negatif, unsigned char y_negatif);
+Trame ReponseConnexion(void);
+Trame StatusMonitor(void);
+
+Trame PiloteGetBuffPosition(void);
+void PilotePIDCoeffs(unsigned int new_kp, unsigned int new_ki, unsigned int new_kd);
+Trame Retour_Valeurs_Analogiques(void);
+Trame Retour_Valeurs_Numeriques(void);
+
+Trame PilotePositionXYT(void);
+Trame PiloteDemandeCapteur(char numCapteur);
+Trame PiloteCapteurs(char cote);
+void PiloteActionneurOnOff(unsigned char id, OnOff onOff);
+void PiloteMoteurPosition(unsigned char id, unsigned int position);
+
+//ASSERVISSEMENT
 int PiloteAcceleration(int acceleration);
 int PiloteAvancer(double distance);
 int PiloteReculer(double distance);
@@ -68,21 +58,8 @@ int PilotePivoter(double angle, Cote direction);
 int PiloteVirage(unsigned char reculer, unsigned char direction, double rayon, double angle);
 int PiloteStop(unsigned char stopmode);
 int PiloteRecallage(Sens s);
-int PiloteAvancerEtapes(int nombreEtapes, Etape etape);
-int PiloteValiderEtapes(int numEtape);
 int PiloteOffsetAsserv(double x, double y, double teta);
-
-// DEBUG
-Trame PiloteDebug0(Trame t);
-Trame PiloteDebug1(Trame t);
-Trame PiloteDebug2(Trame t);
-Trame PiloteDebug3(Trame t);
-Trame PiloteDebug4(Trame t);
-Trame PiloteDebug5(Trame t);
-Trame PiloteDebug6(Trame t);
-Trame PiloteDebug7(Trame t);
-Trame PiloteDebug8(Trame t);
-Trame PiloteDebug9(Trame t);
+Trame PiloteDebug(Trame t, int debugNo);
 
 //Analyse Trame
 Trame AnalyseTrame(Trame t);
@@ -137,10 +114,6 @@ Trame AnalyseTrame(Trame t);
 #define VACUOSTAT_BACK					0x14
 #define VACUOSTAT_FRONT					0x12
 
-// Capteurs
-#define CMD_DEMANDE_COULEUR_EQUIPE		0x72
-#define CMD_REPONSE_COULEUR_EQUIPE		0x73
-
 // Capteurs onOff
 #define CMD_DEMANDE_CAPTEUR_ONOFF		0x74
 #define CMD_REPONSE_CAPTEUR_ONOFF		0x75
@@ -157,17 +130,7 @@ Trame AnalyseTrame(Trame t);
 #define TRAME_UART2_ENVOI 				0xA2
 #define TRAME_UART2_RECEPTION 			0xA3
 
-#define TRAME_DETECTION_BALISE			0xE4
-#define TRAME_DETECTION_BALISE_RAPIDE	0xE5
-
-//2017 à trier
-#define ID_MOTEUR_BALISE				0x10
 #define CMD_MOTEUR_POSITION				0x66
-#define CMD_DEMANDE_CAPTEUR				0x50
-#define CMD_REPONSE_CAPTEUR				0x51
-#define ID_BALISE 						0x01
-#define ID_CAPTEUR_BALISE_1				0x02
-#define ID_CAPTEUR_BALISE_2				0x03
 
 
 //Diagnostic

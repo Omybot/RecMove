@@ -52,10 +52,6 @@ double cons_vit,vitesse;
 
 unsigned char polaire=0;
 
-double etape_pos[5];
-unsigned char nbr_etapes,num_etape;
-
-
 double speed_def[N]={DEFAULT_SPEED};
 double accel_def[N]={DEFAULT_ACCEL};
 double speed_def_ligne=DEFAULT_SPEED;
@@ -379,10 +375,8 @@ void Motors_Start(unsigned char moteur)
 unsigned char Motors_Task(void)
 {
 	unsigned char i;
-	double motors_ok;
 	static unsigned char sens[N];
-	static double decel_point[N],origi_point[N];
-	static double speed_max[N],accel_max[N];
+	static double decel_point[N];
 	double delta_x, delta_y, lcurvi,distance2_pt_avant,distance2_pt_apres;
 	static double pos_teta_old,lcurvi_old,distance_restante,distance_freinage;
 	static double angle_restante,angle_freinage;

@@ -69,7 +69,7 @@ void InitPorts()
 	TRISAbits.TRISA3=1; // RA3 - Mezzanine /* MODIF ! PISTE COUPEE */
 	TRISAbits.TRISA4=0; // RST - Ethernet RST
 	TRISAbits.TRISA7=0; // RA7 - Mezzanine
-	TRISAbits.TRISA8=0; // RA8 - Mezzanine // => Moteur balise
+	TRISAbits.TRISA8=0; // RA8 - Mezzanine // => Capteur couleur LED
 	TRISAbits.TRISA9=0; // CS - Ethernet CS
 	TRISAbits.TRISA10=0; // RA10 - Mezzanine
 	
@@ -205,7 +205,7 @@ void Init_Timer5(void)
 	T5CONbits.TCKPS = 0b10; //Prescaler set to 1:64
 	
 	TMR5 = 0; 				//Clear timer register
-	PR5  = 65536; 			//Load the period value (Pas) 1/(40e6/64/65536) = 104.8576 ms
+	PR5  = (unsigned int)65536; 			//Load the period value (Pas) 1/(40e6/64/65536) = 104.8576 ms
 
 	T5CONbits.TON = 1;		//Starts the timer
 }
