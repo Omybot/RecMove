@@ -587,36 +587,3 @@ void __attribute__((__interrupt__,__auto_psv__)) _T2Interrupt(void) // 3.2µs (31
 {	
 	IFS0bits.T2IF = 0; 		//Clear Timer1 Interrupt flag
 }
-
-void __attribute__((interrupt, no_auto_psv)) _IC2Interrupt(void)
-{
-	// C'était la balise, faut enlever autre chose ?
-
-	IC2CONbits.ICM = 0b001;
-	IFS0bits.IC2IF=0;
-}
-
-void __attribute__((interrupt, no_auto_psv)) _IC7Interrupt(void)
-{
-	// C'était la balise, faut enlever autre chose ?
-
-	IC7CONbits.ICM = 0b001;
-	IFS1bits.IC7IF=0;
-}
-
-void __attribute__((interrupt, no_auto_psv)) _INT1Interrupt(void)
-{
-	static int cpt_IR=0;
-	IFS1bits.INT1IF=0;
-	if(PORTBbits.RB2 == 1)
-	{
-		INTCON2bits.INT1EP = 1; // Check negative edge
-		TMR5=0;
-	}
-	else
-	{
-		INTCON2bits.INT1EP = 0; // Check positive edge
-		IR_result = TMR5;
-	}
-	cpt_IR++;
-}

@@ -119,14 +119,6 @@ void InitPorts()
 
 	// Capteur de couleur OUT  
 	RPINR7bits.IC1R 	= 4;		//RP4
-
-	RPINR0bits.INT1R = 2; // Recepteur IR
-
-	INTCON2bits.INT1EP = 0; // Positive edge
-	IFS1bits.INT1IF = 0; // Clear interrupt flag
-	IEC1bits.INT1IE = 1; // Enable interrupt
-	
-	
 }
 
 void Init_Timer2(void)		
