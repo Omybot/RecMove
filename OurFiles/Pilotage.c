@@ -1,7 +1,6 @@
 #include "Pilotage.h"
 #include "asser.h"
 #include "uart2.h"
-#include <uart2.h>
 #include <math.h>
 
 // ATTENTION /!\ Ces fonctions ne doivent pas être bloquantes
@@ -14,22 +13,19 @@ extern unsigned char alim_capteur_couleur;
 
 //Variable Capteur Couleur
 unsigned int Valeur_Capteur_Couleur = 24;
-unsigned int Cpt_Tmr_Periode = 0;
 
 extern unsigned int IR_result;
-extern unsigned char flag_envoi_uart,buffer_envoi_uart[UART_BUFFER_SIZE],ptr_write_buffer_uart;
+extern unsigned char flag_envoi_uart, buffer_envoi_uart[UART_BUFFER_SIZE], ptr_write_buffer_uart;
 extern unsigned char Demande_lidar;
 extern unsigned int positions_xy[2][300];
 extern unsigned int nbr_points;
 extern unsigned int prd_envoi_position;
 extern unsigned char jackAvant;
-extern unsigned char desactive_interrupt;
-extern unsigned int cpt_capteur_vitesse;
 extern unsigned int ADC_Results[8];
 extern unsigned int position_buffer[6];
 extern unsigned char buff_position_ptr,last_send_ptr;
-extern long buff_position[N][2]; // gain de place traj. courbe
-extern unsigned char buff_status_ptr,last_send_status_ptr;
+extern long buff_position[N][2]; // gain de place traj. courbe0
+extern unsigned char buff_status_ptr, sclast_send_status_ptr;
 extern unsigned int buff_status[3][64];
 extern long raw_position[2];
 extern double erreur[N];
@@ -37,19 +33,13 @@ extern double targ_pos[N];
 extern double real_pos[N];
 extern double cons_pos[N];
 extern double pwm_cor[N];
-extern double feedforward;
-extern unsigned int PID_ressource_used ;
 extern double xydistance;
 extern double xyangle;
-extern double position_lock;
-extern double pos_x;
-extern double pos_y;
+extern double pos_x, pos_y;
 extern double pos_teta;
 extern double offset_teta;
-extern double erreur_allowed;
-extern double kp_cap,ki_cap,kd_cap;
-extern double kp_vit,ki_vit,kd_vit;
-unsigned char scan;
+extern double kp_cap, ki_cap, kd_cap;
+extern double kp_vit, ki_vit, kd_vit;
 
 unsigned int Send_Variable_Capteur_Couleur(void){
 	return Valeur_Capteur_Couleur;

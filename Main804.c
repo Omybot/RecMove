@@ -40,13 +40,11 @@ unsigned int IR_result;
 extern unsigned int ADC_Results[8],cpu_status;
 extern double cons_pos[N];
 extern double real_pos[N];
-extern unsigned char scan;
 unsigned char flag_envoi_position;
 unsigned int prd_envoi_position = 100;
 unsigned char jackAvant = 0;
 unsigned char motor_flag=0,datalogger_blocker=0;
-double position_lock;
-unsigned int datalogger_counter=0,flag=0,courrier=0,PID_ressource_used;
+unsigned int datalogger_counter=0,flag=0,courrier=0;
 unsigned char flag_envoi=0,flag_blocage=0,flag_calage=0;
 
 //LIDAR
@@ -235,7 +233,6 @@ int main(void)
 		//Fin Gestion LIDAR	
 		if(flag_envoi) 
 		{	
-			scan=0;
 			EnvoiUserUdp(envoiFin);
 			flag_envoi = 0;
 		}
