@@ -41,20 +41,20 @@ extern unsigned int ADC_Results[8],cpu_status;
 extern double cons_pos[N];
 extern double real_pos[N];
 unsigned char flag_envoi_position;
-unsigned int prd_envoi_position = 100;
+unsigned int envoiPositionInterval = 100;
 unsigned char jackAvant = 0;
 unsigned char motor_flag=0,datalogger_blocker=0;
 unsigned int datalogger_counter=0,flag=0,courrier=0;
 unsigned char flag_envoi=0,flag_blocage=0,flag_calage=0;
 
 //LIDAR
-unsigned char Demande_lidar = 0,offset_premiere_trame=0;
-unsigned char timeout_lidar=0;
-unsigned char nbr_char_to_send=0,Buffer_passerelle_udpuart[200];
-unsigned char ptr_write_buffer_uart_rec=0,save_write;
-unsigned char ptr_read_buffer_uart_rec=0,save_read;
-unsigned char flag_envoi_uart,buffer_envoi_uart[UART_BUFFER_SIZE],ptr_write_buffer_uart;
-unsigned char ptr_read_buffer_uart=0;
+unsigned char flagDemandeLidar = 0, offset_premiere_trame = 0;
+unsigned char timeout_lidar = 0;
+unsigned char nbr_char_to_send = 0, Buffer_passerelle_udpuart[200];
+unsigned char ptr_write_buffer_uart_rec = 0, save_write;
+unsigned char ptr_read_buffer_uart_rec = 0, save_read;
+unsigned char buffer_envoi_uart[UART_BUFFER_SIZE],ptr_write_buffer_uart;
+unsigned char ptr_read_buffer_uart = 0;
 
 //Variable Capteur Couleur
 unsigned int Cpt_Tmr2_Capteur_Couleur = 0;
@@ -180,9 +180,9 @@ int main(void)
 
 	while(1)
 	{
-		if(Demande_lidar)	
+		if(flagDemandeLidar)	
 		{
-			Demande_lidar=0;
+			flagDemandeLidar=0;
 			EnvoiUART(envoiDemandeHokuyo);
 			messUART[3] = (int)(pos_x * 10)>>8;
 			messUART[4] = (int)(pos_x * 10)&0x00FF;
@@ -470,9 +470,9 @@ void __attribute__ ((interrupt, no_auto_psv)) _T4Interrupt(void)
 	if(timeout_lidar<200) timeout_lidar++;
 	motor_flag = Motors_Task(); // Si prend trop de ressource sur l'udp, inclure motortask dans le main	
 		
-	if(cpt_envoi_position++>prd_envoi_position)
+	if(cpt_envoi_position++>envoiPositionInterval)
 	{
-		if(prd_envoi_position !=0) flag_envoi_position=1;
+		if(envoiPositionInterval !=0) flag_envoi_position=1;
 		cpt_envoi_position=0;
 	}
 

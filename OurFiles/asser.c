@@ -6,7 +6,6 @@
 #define MOYENNE_GLISSANTE_CORRECTEUR 3
 
 unsigned char fin,flag_virage=0,flag_virage_en_cours=0;
-unsigned int pwet;
 static double speed[N]={0},accel_def_debut[N],accel_def_fin[N];
 double cor_moy[N][MOYENNE_GLISSANTE_CORRECTEUR];
 unsigned char cpt_sature[N],ptr_cor_moy[N];	
@@ -36,8 +35,8 @@ unsigned char moteur1, moteur2,motiontype=0; // motiontype : 0: Avance 1: Pivot 
 unsigned char cpt_calage[N];
 
 //Variables pour trajectoires courbes
-unsigned int positions_xy[2][300];
-unsigned int nbr_points,index_position_xy;
+unsigned int pointsPolaire[2][300];
+unsigned int nbPointsPolaire, indexPolaire;
 double distance_restante;
 
 double kp_cap=0,ki_cap=0,kd_cap=0;
@@ -94,10 +93,10 @@ void InitProp(void)
 
 void Deplacement_Polaire()
 {
-	index_position_xy=1;
-	cons_vit=0;
-	fin=0;
-	polaire=1;
+	indexPolaire = 1;
+	cons_vit = 0;
+	fin = 0;
+	polaire = 1;
 	cons_pos_lin = real_pos_lin;
 	cons_pos_ang = real_pos_ang;
 }
@@ -382,6 +381,7 @@ unsigned char Motors_Task(void)
 	unsigned char retour = 0;
 	static unsigned char cpt_blocage[N] = {0};
 	double vitesse_odo;
+	unsigned int indexCiblePolaire;
 
 	lcurvi   = (real_pos[1] + real_pos[0])/2;
 	vitesse_odo  = lcurvi - lcurvi_old;
@@ -413,15 +413,15 @@ unsigned char Motors_Task(void)
 		//accel_def_debut[i] = accel_def_ligne_debut;
 		//accel_def_fin[i] = accel_def_ligne_fin;
 
-		pwet=index_position_xy+30;
-		if(pwet>=nbr_points) pwet=nbr_points-1;
+		indexCiblePolaire = indexPolaire + 30;
+		if(indexCiblePolaire >= nbPointsPolaire) indexCiblePolaire = nbPointsPolaire - 1;
 		
-		cons_y = -((double)(positions_xy[0][pwet]/10.0));
-		cons_x = -((double)(positions_xy[1][pwet]/10.0));	
+		cons_y = -((double)(pointsPolaire[0][indexCiblePolaire]/10.0));
+		cons_x = -((double)(pointsPolaire[1][indexCiblePolaire]/10.0));	
 		
 		// calcul de la trajectoire restante vol d'oiseau
-		targ_pos_y = -((double)(positions_xy[0][nbr_points]))/10.0;
-		targ_pos_x = -((double)(positions_xy[1][nbr_points]))/10.0;
+		targ_pos_y = -((double)(pointsPolaire[0][nbPointsPolaire]))/10.0;
+		targ_pos_x = -((double)(pointsPolaire[1][nbPointsPolaire]))/10.0;
 		distance_restante = pow(targ_pos_x-pos_x,2) + pow(targ_pos_y-pos_y,2); // calcul du carré de la distance restante
 		distance_freinage = pow(pow(cons_vit_lin,2)/(2*accel_def_ligne_fin),2); // calcul du carré de la distance de freinage
 		
@@ -493,11 +493,11 @@ unsigned char Motors_Task(void)
 		// calcul distance entre point actuelle et le point d'après
 		// calcul distance entre point actuelle et le point d'avant
 		// comparaison
-		distance2_pt_avant = pow(-((double)(positions_xy[1][index_position_xy-1]))/10 - pos_x,2) + pow(-((double)(positions_xy[0][index_position_xy-1]))/10-pos_y,2);
-		distance2_pt_apres = pow(-((double)(positions_xy[1][index_position_xy]  ))/10 - pos_x,2) + pow(-((double)(positions_xy[0][index_position_xy]  ))/10-pos_y,2);
+		distance2_pt_avant = pow(-((double)(pointsPolaire[1][indexPolaire-1]))/10 - pos_x,2) + pow(-((double)(pointsPolaire[0][indexPolaire-1]))/10-pos_y,2);
+		distance2_pt_apres = pow(-((double)(pointsPolaire[1][indexPolaire]  ))/10 - pos_x,2) + pow(-((double)(pointsPolaire[0][indexPolaire]  ))/10-pos_y,2);
 		if(distance2_pt_apres <= distance2_pt_avant)
 		{
-			if(++index_position_xy > (nbr_points-20)) //
+			if(++indexPolaire > (nbPointsPolaire-20)) //
 			{
 				fin=1;
 				/*

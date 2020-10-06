@@ -15,33 +15,26 @@ extern unsigned char alim_capteur_couleur;
 unsigned int Valeur_Capteur_Couleur = 24;
 
 extern unsigned int IR_result;
-extern unsigned char flag_envoi_uart, buffer_envoi_uart[UART_BUFFER_SIZE], ptr_write_buffer_uart;
-extern unsigned char Demande_lidar;
-extern unsigned int positions_xy[2][300];
-extern unsigned int nbr_points;
-extern unsigned int prd_envoi_position;
+extern unsigned char buffer_envoi_uart[UART_BUFFER_SIZE], ptr_write_buffer_uart;
+extern unsigned char flagDemandeLidar;
+extern unsigned int pointsPolaire[2][300];
+extern unsigned int nbPointsPolaire;
+extern unsigned int envoiPositionInterval;
 extern unsigned char jackAvant;
 extern unsigned int ADC_Results[8];
 extern unsigned int position_buffer[6];
-extern unsigned char buff_position_ptr,last_send_ptr;
-extern long buff_position[N][2]; // gain de place traj. courbe0
-extern unsigned char buff_status_ptr, sclast_send_status_ptr;
+extern unsigned char buff_position_ptr, last_send_ptr;
+extern long buff_position[N][2];
+extern unsigned char buff_status_ptr, last_send_status_ptr;
 extern unsigned int buff_status[3][64];
-extern long raw_position[2];
-extern double erreur[N];
-extern double targ_pos[N];
-extern double real_pos[N];
-extern double cons_pos[N];
-extern double pwm_cor[N];
-extern double xydistance;
-extern double xyangle;
-extern double pos_x, pos_y;
-extern double pos_teta;
+extern double cons_pos[N], pwm_cor[N];
+extern double pos_x, pos_y, pos_teta;
 extern double offset_teta;
 extern double kp_cap, ki_cap, kd_cap;
 extern double kp_vit, ki_vit, kd_vit;
 
-unsigned int Send_Variable_Capteur_Couleur(void){
+unsigned int Send_Variable_Capteur_Couleur(void)
+{
 	return Valeur_Capteur_Couleur;
 }
 
@@ -53,7 +46,7 @@ Trame CouleurRGB(int Id)
 	static BYTE Couleur[6];
 	
 	RgbMessage.nbChar = 6;
-	Couleur[0] = 0xC4;
+	Couleur[0] = UDP_ID;
 	Couleur[1] = CMD_REPONSE_CAPTEUR_COULEUR;
 	Couleur[2] = Id;
 
@@ -277,28 +270,6 @@ void delays(void)
 Trame PiloteDebug(Trame t, int debugNo)
 {
 	return t;
-}
-
-Trame PiloteGotoXY(int x,int y, unsigned char x_negatif, unsigned char y_negatif)
-{
-	//double x,y,teta;
-	Trame trame;
-	static BYTE tableau[6];
-	trame.nbChar = 6;
-
-	GotoXY((double)x,(double)y,0);
-	
-	tableau[0] = 1;
-	tableau[1] = 0x13;
-	tableau[2] = (int)xyangle>>8;
-	tableau[3] = (int)xyangle&0x00FF;
-	tableau[4] = (int)xydistance>>8;
-	tableau[5] = (int)xydistance&0x00FF;
-	
-	trame.message = tableau;
-	
-	return trame;
-	
 }
 
 Trame StatusMonitor(void)
@@ -540,14 +511,6 @@ Trame AnalyseTrame(Trame t)
 				PiloteReculer(param2);
 			break;
 
-		case CMD_GOTOXY:
-			param1 = t.message[2] * 256 + t.message[3];		// X
-			param2 = t.message[4] * 256 + t.message[5];		// Y
-			param3 = t.message[6];							// X positif
-			param4 = t.message[7];							// Y positif
-			retour = PiloteGotoXY(param1,param2,(unsigned char)param3,(unsigned char)param4);
-			break;
-
 		case CMD_RECALLAGE:
 			param1 = t.message[2];							// Sens
 			PiloteRecallage(param1);
@@ -647,7 +610,7 @@ Trame AnalyseTrame(Trame t)
 			return StatusMonitor();
 
 		case CMD_PRD_ENVOI_POSITION:
-			prd_envoi_position = 10*(unsigned int)t.message[2];
+			envoiPositionInterval = 10*(unsigned int)t.message[2];
 			break;
 
 		case CMD_DEMANDE_VALEURS_ANALOGIQUES:
@@ -657,19 +620,19 @@ Trame AnalyseTrame(Trame t)
 			return Retour_Valeurs_Numeriques();
 
 		case CMD_DEPLACEMENT_POLAIRE:
-		 	nbr_points = t.message[3] * 256 + t.message[4];
-			for(i=0;i<nbr_points;i++)
+		 	nbPointsPolaire = t.message[3] * 256 + t.message[4];
+			for(i=0;i<nbPointsPolaire;i++)
 			{
-				positions_xy[0][i+1] = t.message[5+i*4] * 256 + t.message[6+i*4]; // X
-				positions_xy[1][i+1] = t.message[7+i*4] * 256 + t.message[8+i*4]; // Y
+				pointsPolaire[0][i+1] = t.message[5+i*4] * 256 + t.message[6+i*4]; // X
+				pointsPolaire[1][i+1] = t.message[7+i*4] * 256 + t.message[8+i*4]; // Y
 			}
-			positions_xy[0][0]=pos_x;
-			positions_xy[1][0]=pos_y;
+			pointsPolaire[0][0]=pos_x;
+			pointsPolaire[1][0]=pos_y;
 			Deplacement_Polaire();			
 			break;
 
 		case TRAME_UART2_ENVOI:
-			Demande_lidar=1;
+			flagDemandeLidar = 1;
 			break;
 
 		case CMD_MOTEUR_POSITION:

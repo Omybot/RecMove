@@ -71,7 +71,6 @@ Trame AnalyseTrame(Trame t);
 #define	CMD_PIVOTER						0x03
 #define	CMD_VIRAGE						0x04
 #define	CMD_STOP						0x05
-#define	CMD_GOTOXY						0x06
 #define	CMD_RECALLAGE					0x10
 #define CMD_FINRECALLAGE				0x11
 #define CMD_FINDEPLACEMENT				0x12
