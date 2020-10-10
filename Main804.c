@@ -204,7 +204,7 @@ int main(void)
 	InitDMA();
 
 	//EnvoiUART(envoiBaudrateHokuyo);
-	//U2BRG = 520;			// Chgt de baudrate apres avoir repassé le lidar en 19200 // 86 pour 115200 // 520 pour 19200
+	//U2BRG = 19;			// Chgt de baudrate apres avoir repassé le lidar en 19200 // 86 pour 115200 // 520 pour 19200
 	DelayMs(500); 
 
 	while(1)
