@@ -9,7 +9,7 @@
 
 #include "UserUdp.h"
 
-BYTE bufferReception[1024];
+BYTE bufferReception[256];
 int nbOctetsRecus;
 int accepteClient = 1;
 

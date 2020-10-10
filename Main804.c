@@ -50,11 +50,13 @@ unsigned char flag_envoi=0,flag_blocage=0,flag_calage=0;
 //LIDAR
 unsigned char flagDemandeLidar = 0, offset_premiere_trame = 0;
 unsigned char timeout_lidar = 0;
-unsigned char nbr_char_to_send = 0, Buffer_passerelle_udpuart[200];
+unsigned char nbr_char_to_send = 0; 
 unsigned char ptr_write_buffer_uart_rec = 0, save_write;
 unsigned char ptr_read_buffer_uart_rec = 0, save_read;
-unsigned char buffer_envoi_uart[UART_BUFFER_SIZE],ptr_write_buffer_uart;
+unsigned char ptr_write_buffer_uart;
 unsigned char ptr_read_buffer_uart = 0;
+unsigned char Buffer_passerelle_udpuart[240];
+unsigned char buffer_envoi_uart[UART_BUFFER_SIZE];
 
 //Variable Capteur Couleur
 unsigned int Cpt_Tmr2_Capteur_Couleur = 0;
@@ -135,6 +137,31 @@ int main(void)
 	
 	envoiDemandeHokuyo.message = messDemandeHokuyo;
 	envoiDemandeHokuyo.nbChar = 19;
+
+	
+
+	Trame envoiBaudrateHokuyo;
+	static BYTE messBaudrateHokuyo[12];
+	messBaudrateHokuyo[0] = UDP_ID;
+	messBaudrateHokuyo[1] = UDP_ID;
+	messBaudrateHokuyo[2] = 7;
+	messBaudrateHokuyo[3] = 'S';
+	messBaudrateHokuyo[4] = 'S';
+	messBaudrateHokuyo[5] = '0';
+	messBaudrateHokuyo[6] = '1';
+	messBaudrateHokuyo[7] = '9';
+	messBaudrateHokuyo[8] = '2';
+	messBaudrateHokuyo[9] = '0';
+	messBaudrateHokuyo[10] = '0';
+	messBaudrateHokuyo[11] = '\n';
+
+	//SS115200
+
+	envoiBaudrateHokuyo.message = messBaudrateHokuyo;
+	envoiBaudrateHokuyo.nbChar = 12;
+
+
+
 	// V V [LF] 0 0 P [LF] 
 	
 	InitClk(); 		// Initialisation de l'horloge
@@ -176,6 +203,8 @@ int main(void)
 	InitADC();
 	InitDMA();
 
+	//EnvoiUART(envoiBaudrateHokuyo);
+	//U2BRG = 520;			// Chgt de baudrate apres avoir repassé le lidar en 19200 // 86 pour 115200 // 520 pour 19200
 	DelayMs(500); 
 
 	while(1)
@@ -209,7 +238,7 @@ int main(void)
 
 		if(((nbr_char_to_send >= 200) || (nbr_char_to_send !=0 && timeout_lidar > 50)))
 		{	
-			for(i=0;i<nbr_char_to_send;i++)
+			for(i=0;i<nbr_char_to_send && i<200;i++)
 			{
 				messUART[i+3+offset_premiere_trame]=Buffer_passerelle_udpuart[save_read++];
 				if(save_read>240)
@@ -217,7 +246,7 @@ int main(void)
 			}
 			
 			timeout_lidar=0;
-			envoiUART.nbChar = nbr_char_to_send+3+offset_premiere_trame;
+			envoiUART.nbChar = i+3+offset_premiere_trame;
 			offset_premiere_trame=0;
 			EnvoiUserUdp(envoiUART); // Bon ok 1 pt pour kryss
 			ptr_read_buffer_uart_rec = save_write;

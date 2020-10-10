@@ -21,16 +21,17 @@ void Init_Interrupt_Priority(void)
 {
 	IPC14bits.QEI1IP = 7;			// Quad Encoder Interrupt
 	IPC18bits.QEI2IP = 7;			// Quad Encoder Interrupt
-	IPC2bits.T3IP   = 6;			// Timer 3 used by Input Capture (IC1)
-	IPC1bits.T2IP = 5; 				//Set Timer2 Interrupt Priority Level
-	IPC15bits.DMA5IP  = 4;			// ADC Interrupt
-	IPC0bits.T1IP    = 3;			// Timer 1 used by Ethernet (Default value = 2)
-	IPC6bits.T4IP    = 2;			// Timer 4 Used by Asser
+	IPC7bits.U2RXIP = 6;
+	IPC2bits.T3IP   = 5;			// Timer 3 used by Input Capture (IC1)
+	IPC1bits.T2IP = 4; 				//Set Timer2 Interrupt Priority Level
+	IPC15bits.DMA5IP  = 3;			// ADC Interrupt
+	IPC0bits.T1IP    = 2;			// Timer 1 used by Ethernet (Default value = 2)
+	IPC6bits.T4IP    = 1;			// Timer 4 Used by Asser
 }
 
 void InitUART2() // UART2 Gere le LIDAR
 {
-    U2BRG = 21;			// 115200
+    U2BRG = 86;			// 86 pour 115200 // 520 pour 19200
 	U2MODEbits.UARTEN = 1;		// UART2 is Enabled
 	U2MODEbits.USIDL = 0;		// Continue operation at Idlestate
 	U2MODEbits.IREN = 0;		// IrDA En/Decoder is disabled
@@ -40,7 +41,7 @@ void InitUART2() // UART2 Gere le LIDAR
 	U2MODEbits.LPBACK = 0;		// Loop-back is disabled
 	U2MODEbits.ABAUD = 0;		// auto baud is disabled
 	U2MODEbits.URXINV = 0;		// No RX inversion
-	U2MODEbits.BRGH = 0;		// low boud rate
+	U2MODEbits.BRGH = 1;		// High baud rate
 	U2MODEbits.PDSEL = 0b00; 	// 8bit no parity
 	U2MODEbits.STSEL = 0;		// one stop bit
 
