@@ -120,6 +120,10 @@ void InitPorts()
 
 	// Capteur de couleur OUT  
 	RPINR7bits.IC1R 	= 4;		//RP4
+
+	// Pull up jack
+	CNPU1bits.CN6PUE=1;
+
 }
 
 void Init_Timer2(void)		
