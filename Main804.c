@@ -63,6 +63,8 @@ unsigned int Cpt_Tmr2_Capteur_Couleur = 0;
 unsigned int Tab_Capteur_Couleur[8] = {0};
 unsigned char etat_Capteur_Couleur = 0,alim_capteur_couleur=0;
 
+unsigned char jack_value=0,jack_value_old=0,jack_cpt=0;
+
 
 void _ISR __attribute__((__no_auto_psv__)) _AddressError(void)
 {
@@ -174,6 +176,10 @@ int main(void)
 	MOT3H = 0;
 	MOT4L = 1;
 	MOT4H = 1;
+
+	jack_value = PORTBbits.RB2;
+	jack_value_old = jack_value;
+	
 	
 	Init_Timer2();	// Initialisation Timer2
 	Init_Timer4();	// Initialisation Timer4
@@ -209,6 +215,15 @@ int main(void)
 
 	while(1)
 	{
+		if(jack_cpt == 50)
+		{
+			trame=Retour_Capteur_Onoff(JACK_DEMARRAGE);
+			trame.message[3] = jack_value;
+			EnvoiUserUdp(trame);
+			jack_cpt=0;
+			jack_value_old = jack_value;
+		}
+		
 		if(flagDemandeLidar)	
 		{
 			flagDemandeLidar=0;
@@ -494,6 +509,19 @@ void __attribute__ ((interrupt, no_auto_psv)) _T4Interrupt(void)
 {
 	static unsigned int cpt_envoi_position=0;
 	
+	if (HasClient())
+	{
+		jack_value = !PORTBbits.RB2;
+		if(jack_value_old != jack_value)
+		{
+			if(jack_cpt<50) jack_cpt++;
+		}
+		else
+		{
+			jack_cpt = 0;
+		}	
+	}
+
 	flag = 0;
 	courrier = 1;
 	if(timeout_lidar<200) timeout_lidar++;

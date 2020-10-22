@@ -120,6 +120,11 @@ void EnvoiStringUdp(const char *string)
 	EnvoiUserUdp(envoi);
 }
 
+int HasClient()
+{
+	return !accepteClient;
+}
+
 /**
  * Fills the given number of bytes in the given array with 0
  *

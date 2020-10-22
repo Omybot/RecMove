@@ -106,6 +106,9 @@ Trame Retour_Capteur_Onoff(unsigned char id_capteur)
 		case VACUOSTAT_FRONT:
 			Valeurs[3] = PORTCbits.RC2;
 			break;
+		case JACK_DEMARRAGE:
+			Valeurs[3] = !PORTBbits.RB2;
+			break;
 	}
 	
 	Etat_Valeurs.message = Valeurs;

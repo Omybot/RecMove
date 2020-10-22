@@ -27,6 +27,7 @@ void InitUserUdp();
 Trame ReceptionUserUdp();
 void EnvoiUserUdp();
 void EnvoiStringUdp(const char *string);
+int HasClient();
 void memclr(void * dest, WORD size);
 
 #endif

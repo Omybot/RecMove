@@ -112,7 +112,7 @@ Trame AnalyseTrame(Trame t);
 
 #define VACUOSTAT_BACK					0x14
 #define VACUOSTAT_FRONT					0x12
-
+#define JACK_DEMARRAGE					0x10
 // Capteurs onOff
 #define CMD_DEMANDE_CAPTEUR_ONOFF		0x74
 #define CMD_REPONSE_CAPTEUR_ONOFF		0x75
