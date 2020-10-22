@@ -7,8 +7,8 @@
 #define REDUCTEUR		1						// Reducteur utilise en sortie d'arbre moteur (=1 si roue codeuse indépendante)
 #define DIAMETRE_ROUE 	50						// Diametre de la roue motrice (ou roue codeuse si indépendante) en mm 
 #define PI 				3.1415926535897932384	// Ben pi quoi
-#define VOIE			291.9562725456064*0.999012218592977953102296288383// Distance entre les deux roues en mm
-#define COEFF_ROUE		1.081914480708			// Coeff d'ajustement pour le diametre de la roue
+#define VOIE			294.4868// Distance entre les deux roues en mm
+#define COEFF_ROUE		1.081914480708/1.0224948875255623721881390593047			// Coeff d'ajustement pour le diametre de la roue
 #define MM_SCALER		COEFF_ROUE*DIAMETRE_ROUE*PI/(4*CODEUR*REDUCTEUR) // Formule de conversion [pas]<==>[mm]
 #define MM_INVSCALER	4*CODEUR*REDUCTEUR/(COEFF_ROUE*DIAMETRE_ROUE*PI)
 #define DEFAULT_SPEED	500						// Vitesse par défaut en mm/s
