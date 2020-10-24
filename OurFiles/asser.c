@@ -923,8 +923,8 @@ char pwm(unsigned char motor, double valeur) // Value = +/- 4000
 		case GAUCHE: 	
 		case MOTEUR_2:	if(motiontype == 3)
 						{
-							if(value >  2000) value =  2000;
-							if(value < -2000) value = -2000;	
+							if(value >  4000) value =  4000;
+							if(value < -4000) value = -4000;	
 					
 						}
 						if(value > 0)	// Moteur Gauche
@@ -946,8 +946,8 @@ char pwm(unsigned char motor, double valeur) // Value = +/- 4000
 		case DROITE:
 		case MOTEUR_3:	if(motiontype == 3)
 						{
-							if(value >  2000) value =  2000;
-							if(value < -2000) value = -2000;	
+							if(value >  4000) value =  4000;
+							if(value < -4000) value = -4000;	
 						
 						}
 						if(value > 0)	// Moteur Gauche
