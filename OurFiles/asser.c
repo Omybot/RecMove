@@ -640,7 +640,7 @@ unsigned char Motors_Task(void)
 	{
 		for(i=0;i<N;i++)
 		{
-			if(fabs(cons_pos[i] - real_pos[i]) > 50)
+			if(fabs(cons_pos[i] - real_pos[i]) > 20)
 			{
 				if(cpt_calage[i]<255) 
 					cpt_calage[i]++;
