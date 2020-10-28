@@ -597,12 +597,12 @@ Trame AnalyseTrame(Trame t)
 			if(t.message[2] == AVANT)
 			{
 				cons_pos[0] += MM_SCALER * (t.message[3] * 256 + t.message[4]);
-				cons_pos[1] += MM_SCALER * (t.message[3] * 256 + t.message[4]);
+				cons_pos[1] += MM_SCALER * (t.message[3] * 256 + t.message[4]) * COEFF_ROUE_DIFF;
 			}
 			else
 			{
 				cons_pos[0] -= MM_SCALER * (t.message[3] * 256 + t.message[4]);
-				cons_pos[1] -= MM_SCALER * (t.message[3] * 256 + t.message[4]);
+				cons_pos[1] -= MM_SCALER * (t.message[3] * 256 + t.message[4]) * COEFF_ROUE_DIFF;
 			}
 			break;
 

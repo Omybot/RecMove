@@ -731,7 +731,7 @@ unsigned char pid(unsigned char power,double * targ_pos,double * real_pos)
 
 	// Calcul de la position reelle en mm
 	real_pos[0] = 1.000 * MM_SCALER * (double)raw_position[0]; // Roue droite
-	real_pos[1] = 1.000 * MM_SCALER * (double)raw_position[1]; // Roue gauche
+	real_pos[1] = 1.000 * MM_SCALER * (double)raw_position[1] * COEFF_ROUE_DIFF; // Roue gauche
 
 	cor[0] = 0;
 	cor[1] = 0;
@@ -815,7 +815,8 @@ unsigned char pid(unsigned char power,double * targ_pos,double * real_pos)
 		{
 			for(i=0;i<N;i++)
 			{
-				erreur[i] = targ_pos[i]* MM_INVSCALER - (double)raw_position[i];// ; // Calcul de l'erreur en pas codeur
+				if(i==0) erreur[i] = targ_pos[i]* MM_INVSCALER - (double)raw_position[i];// ; // Calcul de l'erreur en pas codeur
+				else	 erreur[i] = targ_pos[i]* MM_INVSCALER / COEFF_ROUE_DIFF - (double)raw_position[i];// ; // Calcul de l'erreur en pas codeur
 				if((motion[0] == 0) && (motion[1] == 0))
 				{
 					if(pid_count < 1000)
