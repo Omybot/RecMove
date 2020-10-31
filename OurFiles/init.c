@@ -21,6 +21,7 @@ void Init_Interrupt_Priority(void)
 {
 	IPC14bits.QEI1IP = 7;			// Quad Encoder Interrupt
 	IPC18bits.QEI2IP = 7;			// Quad Encoder Interrupt
+	IPC0bits.IC1IP = 6;
 	IPC7bits.U2RXIP = 6;
 	IPC2bits.T3IP   = 5;			// Timer 3 used by Input Capture (IC1)
 	IPC1bits.T2IP = 4; 				//Set Timer2 Interrupt Priority Level

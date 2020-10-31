@@ -18,7 +18,7 @@ unsigned char kd_cancel;
 unsigned int pid_count;
 double cons_pos[N]={0};
 long raw_position[N];
-long buff_position[N][10];//[256]; gain de place traj. courbe
+long buff_position[N][NBR_BUFF_POSITION];
 unsigned char buff_position_ptr=0,last_send_ptr=0;
 unsigned char buff_status_ptr=0,last_send_status_ptr=0;
 unsigned int buff_status[3][64];
@@ -35,7 +35,7 @@ unsigned char moteur1, moteur2,motiontype=0; // motiontype : 0: Avance 1: Pivot 
 unsigned char cpt_calage[N];
 
 //Variables pour trajectoires courbes
-unsigned int pointsPolaire[2][300];
+unsigned int pointsPolaire[2][NBR_POINTS_POLAIRES]; // [2][300] save memory
 unsigned int nbPointsPolaire, indexPolaire;
 double distance_restante;
 
@@ -726,8 +726,8 @@ unsigned char pid(unsigned char power,double * targ_pos,double * real_pos)
 	raw_position[0] = (long)POS1CNT + (long)(revolutions[0]*0x10000);
 	raw_position[1] = (long)POS2CNT + (long)(revolutions[1]*0x10000);
 
-	//buff_position[0][buff_position_ptr]   = raw_position[0]; // gain de place traj. courbe
-	//buff_position[1][buff_position_ptr++] = raw_position[1];
+	buff_position[0][buff_position_ptr]   = raw_position[0]; 
+	buff_position[1][buff_position_ptr++] = raw_position[1];
 
 	// Calcul de la position reelle en mm
 	real_pos[0] = 1.000 * MM_SCALER * (double)raw_position[0]; // Roue droite
