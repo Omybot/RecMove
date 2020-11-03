@@ -16,8 +16,8 @@
 #define DEFAULT_ACCEL	500					// Acceleration par défaut en mm/s^2
 #define ERROR_ALLOWED	0						// En cas de sifflement moteur intempestif (en pas)
 
-#define NBR_BUFF_POSITION 	64
-#define NBR_POINTS_POLAIRES	300
+#define NBR_BUFF_POSITION 	256
+#define NBR_POINTS_POLAIRES	10
 
 #define MOT1H 	LATCbits.LATC6
 #define MOT1L	LATCbits.LATC7
