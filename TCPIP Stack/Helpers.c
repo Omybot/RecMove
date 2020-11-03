@@ -252,56 +252,6 @@ DWORD GenerateRandomDWORD(void)
 }
 
 
-#if defined(STACK_USE_HTTP_SERVER)
-/*****************************************************************************
-  Function:
-	void UnencodeURL(BYTE* URL)
-
-  Summary:
-	Decodes a URL-encoded string.
-
-  Description:
-	This function is deprecated except for use with HTTP Classic.  It
-	attempts to decode a URL encoded string, converting all hex escape
-	sequences into a literal byte.  However, it is inefficient over long
-	strings and does not handle URL-encoded data strings ('&' and '=').
-
-  Precondition:
-	None
-
-  Parameters:
-	URL - the null-terminated string to decode
-
-  Returns:
-  	None
-  ***************************************************************************/
-void UnencodeURL(BYTE* URL)
-{
-	BYTE *Right, *Copy;
-	WORD_VAL Number;
-
-	while((Right = (BYTE*)strchr((char*)URL, '%')))
-	{
-		// Make sure the string is long enough
-		if(Right[1] == '\0')
-			break;
-		if(Right[2] == '\0')
-			break;
-
-		// Update the string in place
-		Number.v[0] = Right[2];
-		Number.v[1] = Right[1];
-		*Right++ = hexatob(Number);
-		URL = Right;
-
-		// Remove two blank spots by shifting all remaining characters right two
-		Copy = Right + 2;
-		while((*Right++ = *Copy++));
-	}
-}		    
-#endif
-
-
 /*****************************************************************************
   Function:
 	BOOL StringToIPAddress(BYTE* str, IP_ADDR* IPAddress)

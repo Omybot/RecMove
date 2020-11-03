@@ -201,7 +201,6 @@ int main(void)
 	Init_Input_Capture();	
 	UDPInit();
     StackInit();	
- 	UDPPerformanceTask();
 	InitUserUdp();
 	
 	Init_Interrupt_Priority();							
@@ -310,16 +309,7 @@ int main(void)
 		{
 			dwLastIP = AppConfig.MyIPAddr.Val;
 			
-			#if defined(STACK_USE_UART)
-				putrsUART((ROM char*)"\r\nNew IP Address: ");
-			#endif
-
 			DisplayIPValue(AppConfig.MyIPAddr);
-
-			#if defined(STACK_USE_UART)
-				putrsUART((ROM char*)"\r\n");
-			#endif
-
 
 			#if defined(STACK_USE_ANNOUNCE)
 				AnnounceIP();

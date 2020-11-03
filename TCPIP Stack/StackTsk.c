@@ -139,56 +139,6 @@ void StackInit(void)
     UDPInit();
 #endif
 
-/*
-#if defined(STACK_USE_TCP)
-    TCPInit();
-#endif
-*/
-
-/*
-#if defined(STACK_USE_BERKELEY_API)
-	BerkeleySocketInit();
-#endif
-*/
-
-/*
-#if defined(STACK_USE_HTTP_SERVER) || defined(STACK_USE_HTTP2_SERVER)
-    HTTPInit();
-#endif
-*/
-
-#if defined(STACK_USE_RSA)
-	RSAInit();
-#endif
-
-#if defined(STACK_USE_SSL)
-    SSLInit();
-#endif
-
-/*
-#if defined(STACK_USE_FTP_SERVER) && defined(STACK_USE_MPFS)
-    FTPInit();
-#endif
-*/
-
-/*
-#if defined(STACK_USE_SNMP_SERVER)
-	SNMPInit();
-#endif
-*/
-
-#if defined(STACK_USE_DHCP_CLIENT)
-	DHCPInit(0);
-    if(!AppConfig.Flags.bIsDHCPEnabled)
-    {
-        DHCPDisable(0);
-    }
-#endif
-
-#if defined(STACK_USE_DYNAMICDNS_CLIENT)
-		DDNSInit();
-#endif
-
 
 }
 
@@ -227,49 +177,9 @@ void StackTask(void)
         #endif     
     #endif
 
-	#if defined(STACK_USE_DHCP_CLIENT)
-	// Normally, an application would not include  DHCP module
-	// if it is not enabled. But in case some one wants to disable
-	// DHCP module at run-time, remember to not clear our IP
-	// address if link is removed.
-	if(AppConfig.Flags.bIsDHCPEnabled)
-	{
-		static BOOL bLastLinkState = FALSE;
-		BOOL bCurrentLinkState;
-		
-		bCurrentLinkState = MACIsLinked();
-		if(bCurrentLinkState != bLastLinkState)
-		{
-			bLastLinkState = bCurrentLinkState;
-			if(!bCurrentLinkState)
-			{
-				AppConfig.MyIPAddr.Val = AppConfig.DefaultIPAddr.Val;
-				AppConfig.MyMask.Val = AppConfig.DefaultMask.Val;
-				AppConfig.Flags.bInConfigMode = TRUE;
-				DHCPInit(0);
-			}
-		}
-	
-		// DHCP must be called all the time even after IP configuration is
-		// discovered.
-		// DHCP has to account lease expiration time and renew the configuration
-		// time.
-		DHCPTask();
-		
-		if(DHCPIsBound(0))
-			AppConfig.Flags.bInConfigMode = FALSE;
-	}
-	#endif
-
     #if defined (STACK_USE_AUTO_IP)
     AutoIPTasks();
     #endif
-
-	#if defined(STACK_USE_TCP)
-	// Perform all TCP time related tasks (retransmit, send acknowledge, close connection, etc)
-	TCPTick();
-	#endif
-
 
 	#if defined(STACK_USE_UDP)
 	UDPTask();
@@ -337,14 +247,6 @@ void StackTask(void)
 				}
 				#endif
 				
-				#if defined(STACK_USE_TCP)
-				if(cIPFrameType == IP_PROT_TCP)
-				{
-					TCPProcess(&remoteNode, &tempLocalIP, dataCount);
-					break;
-				}
-				#endif
-				
 				#if defined(STACK_USE_UDP)
 				if(cIPFrameType == IP_PROT_UDP)
 				{
@@ -375,15 +277,7 @@ void StackTask(void)
  *
  ********************************************************************/
 void StackApplications(void)
-{
-	#if defined(STACK_USE_HTTP_SERVER) || defined(STACK_USE_HTTP2_SERVER)
-	HTTPServer();
-	#endif
-	
-	#if defined(STACK_USE_FTP_SERVER) && defined(STACK_USE_MPFS)
-	FTPServer();
-	#endif
-	
+{	
 	#if defined(STACK_USE_SNMP_SERVER)
 	SNMPTask();
 	#endif
@@ -395,19 +289,7 @@ void StackApplications(void)
 	#if defined(STACK_USE_NBNS)
 	NBNSTask();
 	#endif
-	
-	#if defined(STACK_USE_DHCP_SERVER)
-	DHCPServerTask();
-	#endif
-	
-	#if defined (STACK_USE_DYNAMICDNS_CLIENT)
-	DDNSTask();
-	#endif
-	
-	#if defined(STACK_USE_TELNET_SERVER)
-	TelnetTask();
-	#endif
-	
+
 	#if defined(STACK_USE_REBOOT_SERVER)
 	RebootTask();
 	#endif
@@ -416,20 +298,8 @@ void StackApplications(void)
 	SNTPClient();
 	#endif
 	
-	#if defined(STACK_USE_UDP_PERFORMANCE_TEST)
-	UDPPerformanceTask();
-	#endif
-	
-	#if defined(STACK_USE_TCP_PERFORMANCE_TEST)
-	TCPPerformanceTask();
-	#endif
-	
 	#if defined(STACK_USE_SMTP_CLIENT)
 	SMTPTask();
 	#endif
-/*
-	#if defined(STACK_USE_UART2TCP_BRIDGE)
-	UART2TCPBridgeTask();
-	#endif
-*/
+
 }

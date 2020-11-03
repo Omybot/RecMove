@@ -81,17 +81,6 @@ typedef enum
     SKT_DISCONNECTED		// TCP client or server no longer connected to the remote host (but was historically)
 } BSD_SCK_STATE; // Berkeley Socket (BSD) states
 
-struct BSDSocket
-{
-    int            SocketType; // Socket type
-    BSD_SCK_STATE  bsdState; //Socket state
-    WORD           localPort; //local port
-    WORD           remotePort; //remote port
-    DWORD          remoteIP; //remote IP
-    int            backlog; // maximum number or client connection
-    BOOL           isServer; // server/client check
-    TCP_SOCKET     SocketID; // Socket ID
-}; // Berkeley Socket structure
 
 #define INVALID_TCP_PORT   (0L)  //Invalide TCP port
 

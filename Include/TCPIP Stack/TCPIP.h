@@ -93,101 +93,10 @@
  *   on configurations selected in TCPIPConfig.h
  *******************************************************************/
 
-	// Make sure MPFS included for modules that require it
-	#if defined(STACK_USE_FTP_SERVER) || defined(STACK_USE_HTTP_SERVER)
-		#define STACK_USE_MPFS
-	#endif
-	
-	#if defined(STACK_USE_HTTP2_SERVER)
-		#define STACK_USE_MPFS2
-	#endif
-	
-	#if defined(STACK_USE_SNMP_SERVER) && !defined(STACK_USE_MPFS) && !defined(STACK_USE_MPFS2)
-		#define STACK_USE_MPFS2
-	#endif
-	
-	// FTP is not supported in MPFS2 or when MPFS is stored in internal program 
-	// memory (instead of external EEPROM).
-	#if ( (!defined(MPFS_USE_EEPROM) && !defined(MPFS_USE_SPI_FLASH)) || defined(STACK_USE_MPFS2) ) && defined(STACK_USE_FTP)
-		#error FTP server is not supported with HTTP2 / MPFS2, or with internal Flash memory storage
-	#endif
-	
 	// When IP Gleaning is enabled, ICMP must also be enabled.
 	#if defined(STACK_USE_IP_GLEANING)
 	    #if !defined(STACK_USE_ICMP_SERVER)
 	        #define STACK_USE_ICMP_SERVER
-	    #endif
-	#endif
-	
-	// Include modules required by specific HTTP demos
-	#if !defined(STACK_USE_HTTP2_SERVER)
-		#undef STACK_USE_HTTP_EMAIL_DEMO
-		#undef STACK_USE_HTTP_MD5_DEMO
-		#undef STACK_USE_HTTP_APP_RECONFIG
-	#endif
-	#if defined(STACK_USE_HTTP_EMAIL_DEMO)
-		#if !defined(STACK_USE_SMTP_CLIENT)
-			#error HTTP E-mail Demo requires SMTP_CLIENT and HTTP2
-		#endif
-	#endif
-	#if defined(STACK_USE_HTTP_MD5_DEMO)
-		#if !defined(STACK_USE_MD5)
-			#define STACK_USE_MD5
-		#endif
-	#endif
-	
-	// Can't do MPFS upload without POST or external memory
-	#if defined(HTTP_MPFS_UPLOAD)
-		#if !defined(HTTP_USE_POST) || (!defined(MPFS_USE_EEPROM) && !defined(MPFS_USE_SPI_FLASH))
-			#undef HTTP_MPFS_UPLOAD
-		#endif
-	#endif
-	
-	// Make sure that the DNS client is enabled if services require it
-	#if defined(STACK_USE_GENERIC_TCP_CLIENT_EXAMPLE) || \
-		defined(STACK_USE_SNTP_CLIENT) || \
-		defined(STACK_USE_DYNAMICDNS_CLIENT) || \
-		defined(STACK_USE_SMTP_CLIENT)
-	    #if !defined(STACK_USE_DNS)
-	        #define STACK_USE_DNS
-	    #endif
-	#endif
-	
-	// Make sure that STACK_CLIENT_MODE is defined if a service 
-	// depends on it
-	#if defined(STACK_USE_FTP_SERVER) || \
-		defined(STACK_USE_SNMP_SERVER) || \
-		defined(STACK_USE_DNS) || \
-		defined(STACK_USE_GENERIC_TCP_CLIENT_EXAMPLE) || \
-		defined(STACK_USE_TFTP_CLIENT) || \
-		defined(STACK_USE_SMTP_CLIENT) || \
-		defined(STACK_USE_ICMP_CLIENT) || \
-		defined(STACK_USE_DYNAMICDNS_CLIENT) || \
-		defined(STACK_USE_SNTP_CLIENT) || \
-		defined(STACK_USE_BERKELEY_API) || \
-		defined(STACK_USE_SSL_CLIENT)
-		#if !defined(STACK_CLIENT_MODE)
-		    #define STACK_CLIENT_MODE
-		#endif
-	#endif
-	
-	// Make sure that STACK_USE_TCP is defined if a service 
-	// depends on it
-	#if defined(STACK_USE_UART2TCP_BRIDGE) || \
-		defined(STACK_USE_HTTP_SERVER) || \
-		defined(STACK_USE_HTTP2_SERVER) || \
-		defined(STACK_USE_FTP_SERVER) || \
-		defined(STACK_USE_TELNET_SERVER) || \
-		defined(STACK_USE_GENERIC_TCP_CLIENT_EXAMPLE) || \
-		defined(STACK_USE_GENERIC_TCP_SERVER_EXAMPLE) || \
-		defined(STACK_USE_SMTP_CLIENT) || \
-		defined(STACK_USE_TCP_PERFORMANCE_TEST) || \
-		defined(STACK_USE_DYNAMICDNS_CLIENT) || \
-		defined(STACK_USE_BERKELEY_API) || \
-		defined(STACK_USE_SSL_CLIENT) || \
-		defined(STACK_USE_SSL_SERVER)
-	    #if !defined(STACK_USE_TCP)
-	        #define STACK_USE_TCP
 	    #endif
 	#endif
 	
