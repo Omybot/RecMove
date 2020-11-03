@@ -161,12 +161,6 @@
 		#define STACK_USE_RANDOM
 	#endif
 
-	// When using either RSA operation, include the RSA module
-	#if defined(STACK_USE_RSA_ENCRYPT) || defined(STACK_USE_RSA_DECRYPT)
-		#define STACK_USE_RSA
-		#define STACK_USE_BIGINT
-	#endif
-
 	// Enable the LCD if configured in the hardware profile
 	#if defined(LCD_DATA_IO) || defined(LCD_DATA0_IO)
 		#define USE_LCD
@@ -192,14 +186,6 @@
 #include "TCPIP Stack/MAC.h"
 #include "TCPIP Stack/IP.h"
 #include "TCPIP Stack/ARP.h"
-
-#if defined(STACK_USE_BIGINT)
-	#include "TCPIP Stack/BigInt.h"
-#endif
-
-#if defined(STACK_USE_RSA)
-	#include "TCPIP Stack/RSA.h"
-#endif
 
 #if defined(STACK_USE_ARCFOUR)
 	#include "TCPIP Stack/ARCFOUR.h"
