@@ -91,7 +91,7 @@
 //#define STACK_USE_UDP_PERFORMANCE_TEST	// Module for testing UDP TX performance characteristics.  NOTE: Enabling this will cause a huge amount of UDP broadcast packets to flood your network on the discard port.  Use care when enabling this on production networks, especially with VPNs (could tunnel broadcast traffic across a limited bandwidth connection).
 //#define STACK_USE_TCP_PERFORMANCE_TEST	// Module for testing TCP TX performance characteristics
 //#define STACK_USE_DYNAMICDNS_CLIENT		// Dynamic DNS client updater module
-#define STACK_USE_BERKELEY_API			// Berekely Sockets APIs are available
+//#define STACK_USE_BERKELEY_API			// Berekely Sockets APIs are available
 
 
 // =======================================================================

@@ -1,6 +1,5 @@
 #include "Pilotage.h"
 #include "asser.h"
-#include "uart2.h"
 #include <math.h>
 
 // ATTENTION /!\ Ces fonctions ne doivent pas être bloquantes

@@ -217,20 +217,12 @@
 	#include "TCPIP Stack/Hashes.h"
 #endif
 
-	#include "TCPIP Stack/XEEPROM.h"
-	#include "TCPIP Stack/SPIFlash.h"
-	#include "TCPIP Stack/SPIRAM.h"
-
 #if defined(STACK_USE_UDP)
 	#include "TCPIP Stack/UDP.h"
 #endif
 
 #if defined(STACK_USE_TCP)
 	#include "TCPIP Stack/TCP.h"
-#endif
-
-#if defined(STACK_USE_BERKELEY_API)
-	#include "TCPIP Stack/BerkeleyAPI.h"
 #endif
 
 #if defined(USE_LCD)
