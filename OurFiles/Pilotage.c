@@ -249,24 +249,6 @@ void PiloteActionneurOnOff(unsigned char id, OnOff onOff)
 	}
 }
 
-void delay(void)
-{
-    long i = 10; 
-    while(i--);
-}
-
-void delayms(void) 
-{
-	long i = 1600000; //400ms
-    while(i--);
-}
-
-void delays(void) 
-{
-	long i = 4000000; //seconde
-    while(i--);
-}
-
 // DEBUG
 
 Trame PiloteDebug(Trame t, int debugNo)

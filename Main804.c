@@ -1,4 +1,3 @@
-#define THIS_IS_STACK_APPLICATION
 #include "TCPIP Stack/TCPIP.h"
 #include "OurFiles/UserUdp.h"
 #include "OurFiles/asser.h"
@@ -9,7 +8,6 @@
 #include <math.h>
 #include <p33FJ128MC804.h>
 #include "OurFiles/Pilotage.h"
-#include "OurFiles/FonctionsUc.h"
 
 #define UART_BUFFER_SIZE	100
 #define IDCAPTEUR_BAS 0
@@ -293,7 +291,6 @@ int main(void)
 			flag_envoi_position = 0;
 		}
 		
-
 		StackTask();
 		trame = ReceptionUserUdp();
 		if(trame.nbChar != 0)
@@ -301,15 +298,10 @@ int main(void)
 			trame = AnalyseTrame(trame);
 			EnvoiUserUdp(trame);
 		}
-        StackApplications();
 
 		if(dwLastIP != AppConfig.MyIPAddr.Val)
 		{
 			dwLastIP = AppConfig.MyIPAddr.Val;
-			
-			#if defined(STACK_USE_ANNOUNCE)
-				AnnounceIP();
-			#endif
 		}
 	}
 }

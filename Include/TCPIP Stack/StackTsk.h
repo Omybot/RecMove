@@ -115,10 +115,7 @@ typedef struct __attribute__((__packed__))
 
 } APP_CONFIG;
 
-#ifndef THIS_IS_STACK_APPLICATION
-    extern APP_CONFIG AppConfig;
-#endif
-
+extern APP_CONFIG AppConfig;
 
 void StackInit(void);
 void StackTask(void);

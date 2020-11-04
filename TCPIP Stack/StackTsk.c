@@ -177,13 +177,7 @@ void StackTask(void)
         #endif     
     #endif
 
-    #if defined (STACK_USE_AUTO_IP)
-    AutoIPTasks();
-    #endif
-
-	#if defined(STACK_USE_UDP)
 	UDPTask();
-	#endif
 
 	// Process as many incomming packets as we can
 	while(1)
@@ -196,9 +190,7 @@ void StackTask(void)
 		// We are about to fetch a new packet, make sure that the 
 		// UDP module knows that any old RX data it has laying 
 		// around will now be gone.
-		#if defined(STACK_USE_UDP)
-			UDPDiscard();
-		#endif
+		UDPDiscard();
 
 		// Fetch a packet (throws old one away, if not thrown away 
 		// yet)
@@ -247,59 +239,14 @@ void StackTask(void)
 				}
 				#endif
 				
-				#if defined(STACK_USE_UDP)
 				if(cIPFrameType == IP_PROT_UDP)
 				{
 					// Stop processing packets if we came upon a UDP frame with application data in it
 					if(UDPProcess(&remoteNode, &tempLocalIP, dataCount))
 						return;
 				}
-				#endif
 
 				break;
 		}
 	}
-}
-
-/*********************************************************************
- * Function:        void StackApplications(void)
- *
- * PreCondition:    StackInit() is already called.
- *
- * Input:           None
- *
- * Output:          Calls all loaded application modules.
- *
- * Side Effects:    None
- *
- * Note:            This function must be called periodically to
- *                  ensure timely responses.
- *
- ********************************************************************/
-void StackApplications(void)
-{	
-	#if defined(STACK_USE_SNMP_SERVER)
-	SNMPTask();
-	#endif
-	
-	#if defined(STACK_USE_ANNOUNCE)
-	DiscoveryTask();
-	#endif
-	
-	#if defined(STACK_USE_NBNS)
-	NBNSTask();
-	#endif
-
-	#if defined(STACK_USE_REBOOT_SERVER)
-	RebootTask();
-	#endif
-	
-	#if defined(STACK_USE_SNTP_CLIENT)
-	SNTPClient();
-	#endif
-	
-	#if defined(STACK_USE_SMTP_CLIENT)
-	SMTPTask();
-	#endif
-
 }

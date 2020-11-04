@@ -29,11 +29,6 @@ Rgb frequency2RGB(double freqClear, double freqRed, double freqGreen, double fre
 
 void EnvoiUART(Trame t);
 
-//Delay
-void delay(void);
-void delays(void);
-void delayms(void);
-
 Trame Retour_Capteur_Onoff(unsigned char id_capteur);
 Trame PiloteGotoXY(int x, int y, unsigned char x_negatif, unsigned char y_negatif);
 Trame ReponseConnexion(void);

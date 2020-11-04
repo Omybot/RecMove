@@ -110,75 +110,11 @@
 		#define TCP_SPI_RAM_SIZE 0u
 	#endif
 	
-	// If PIC RAM is used to store TCP socket FIFOs and TCBs, 
-	// let's allocate it so the linker dynamically chooses 
-	// where to locate it and prevents other variables from 
-	// overlapping with it
-	#if defined(__TCP_C) && TCP_PIC_RAM_SIZE > 0u
-		#if defined(__18CXX) && !defined(HI_TECH_C)
-			#pragma udata TCPSocketMemory
-		#endif
-		static BYTE TCPBufferInPIC[TCP_PIC_RAM_SIZE] __attribute__((far));
-		#if defined(__18CXX) && !defined(HI_TECH_C)
-			#pragma udata
-		#endif
-	#endif
-	
-	// Make sure that STACK_USE_UDP is defined if a service 
-	// depends on it
-	#if defined(STACK_USE_DHCP_CLIENT) || \
-		defined(STACK_USE_DHCP_SERVER) || \
-		defined(STACK_USE_DNS) || \
-		defined(STACK_USE_NBNS) || \
-		defined(STACK_USE_SNMP_SERVER) || \
-		defined(STACK_USE_TFTP_CLIENT) || \
-		defined(STACK_USE_ANNOUNCE) || \
-		defined(STACK_USE_UDP_PERFORMANCE_TEST) || \
-		defined(STACK_USE_SNTP_CLIENT) || \
-		defined(STACK_USE_BERKELEY_API)
-	    #if !defined(STACK_USE_UDP)
-	        #define STACK_USE_UDP
-	    #endif
-	#endif
-
-	// When using SSL server, enable RSA decryption
-	#if defined(STACK_USE_SSL_SERVER)
-		#define STACK_USE_RSA_DECRYPT
-		#define STACK_USE_SSL
-	#endif
-	
-	// When using SSL client, enable RSA encryption
-	#if defined(STACK_USE_SSL_CLIENT)
-		#define STACK_USE_RSA_ENCRYPT
-		#define STACK_USE_SSL
-	#endif
-
-	// If using SSL (either), include the rest of the support modules
-	#if defined(STACK_USE_SSL)
-		#define STACK_USE_ARCFOUR
-		#define STACK_USE_MD5
-		#define STACK_USE_SHA1
-		#define STACK_USE_RANDOM
-	#endif
-
 	// Enable the LCD if configured in the hardware profile
 	#if defined(LCD_DATA_IO) || defined(LCD_DATA0_IO)
 		#define USE_LCD
 	#endif
 	
-	// SPI Flash MPFS images must start on a block boundary
-	#if (defined(STACK_USE_MPFS2) || defined(STACK_USE_MPFS)) && \
-		defined(MPFS_USE_SPI_FLASH) && ((MPFS_RESERVE_BLOCK & 0x0fff) != 0)
-		#error MPFS_RESERVE_BLOCK must be a multiple of 4096 for SPI Flash storage
-	#endif
-	
-	// HTTP2 requires 2 MPFS2 handles per connection, plus one spare
-	#if defined(STACK_USE_HTTP2_SERVER)
-		#if MAX_MPFS_HANDLES < ((MAX_HTTP_CONNECTIONS * 2) + 1)
-			#error HTTP2 requires 2 MPFS2 file handles per connection, plus one additional.
-		#endif
-	#endif
-
 #include "TCPIP Stack/StackTsk.h"
 #include "TCPIP Stack/Helpers.h"
 #include "TCPIP Stack/Delay.h"
@@ -187,128 +123,12 @@
 #include "TCPIP Stack/IP.h"
 #include "TCPIP Stack/ARP.h"
 
-#if defined(STACK_USE_ARCFOUR)
-	#include "TCPIP Stack/ARCFOUR.h"
-#endif
-
-#if defined(STACK_USE_AUTO_IP)
-    #include "TCPIP Stack/AutoIP.h"
-#endif
-
-#if defined(STACK_USE_RANDOM)
-	#include "TCPIP Stack/Random.h"
-#endif
-
-#if defined(STACK_USE_MD5) || defined(STACK_USE_SHA1)
-	#include "TCPIP Stack/Hashes.h"
-#endif
-
 #if defined(STACK_USE_UDP)
 	#include "TCPIP Stack/UDP.h"
-#endif
-
-#if defined(STACK_USE_TCP)
-	#include "TCPIP Stack/TCP.h"
-#endif
-
-#if defined(USE_LCD)
-	#include "TCPIP Stack/LCDBlocking.h"
-#endif
-
-#if defined(STACK_USE_UART2TCP_BRIDGE)
-	#include "TCPIP Stack/UART2TCPBridge.h"
-#endif
-
-#if defined(STACK_USE_UART)
-	#include "TCPIP Stack/UART.h"
-#endif
-
-#if defined(STACK_USE_DHCP_CLIENT) || defined(STACK_USE_DHCP_SERVER)
-	#include "TCPIP Stack/DHCP.h"
-#endif
-
-#if defined(STACK_USE_DNS)
-	#include "TCPIP Stack/DNS.h"
-#endif
-
-#if defined(STACK_USE_MPFS)
-	#include "TCPIP Stack/MPFS.h"
-#endif
-
-#if defined(STACK_USE_MPFS2)
-	#include "TCPIP Stack/MPFS2.h"
-#endif
-
-#if defined(STACK_USE_FTP_SERVER)
-	#include "TCPIP Stack/FTP.h"
-#endif
-
-#if defined(STACK_USE_HTTP_SERVER)
-	#include "TCPIP Stack/HTTP.h"
-#endif
-
-#if defined(STACK_USE_HTTP2_SERVER)
-	#include "TCPIP Stack/HTTP2.h"
 #endif
 
 #if defined(STACK_USE_ICMP_SERVER) || defined(STACK_USE_ICMP_CLIENT)
 	#include "TCPIP Stack/ICMP.h"
 #endif
 
-#if defined(STACK_USE_ANNOUNCE)
-	#include "TCPIP Stack/Announce.h"
-#endif
-
-#if defined(STACK_USE_SNMP_SERVER)
-	#include "TCPIP Stack/SNMP.h"
-	#include "mib.h"
-#endif
-
-#if defined(STACK_USE_NBNS)
-	#include "TCPIP Stack/NBNS.h"
-#endif
-
-#if defined(STACK_USE_DNS)
-	#include "TCPIP Stack/DNS.h"
-#endif
-
-#if defined(STACK_USE_DYNAMICDNS_CLIENT)
-	#include "TCPIP Stack/DynDNS.h"
-#endif
-
-#if defined(STACK_USE_TELNET_SERVER)
-	#include "TCPIP Stack/Telnet.h"
-#endif
-
-#if defined(STACK_USE_SMTP_CLIENT)
-	#include "TCPIP Stack/SMTP.h"
-#endif
-
-#if defined(STACK_USE_TFTP_CLIENT)
-	#include "TCPIP Stack/TFTPc.h"
-#endif
-
-#if defined(STACK_USE_REBOOT_SERVER)
-	#include "TCPIP Stack/Reboot.h"
-#endif
-
-#if defined(STACK_USE_SNTP_CLIENT)
-	#include "TCPIP Stack/SNTP.h"
-#endif
-
-#if defined(STACK_USE_UDP_PERFORMANCE_TEST)
-	#include "TCPIP Stack/UDPPerformanceTest.h"
-#endif
-
-#if defined(STACK_USE_TCP_PERFORMANCE_TEST)
-	#include "TCPIP Stack/TCPPerformanceTest.h"
-#endif
-
-#if defined(STACK_USE_SSL)
-	#include "TCPIP Stack/SSL.h"
-#endif
-
-#if defined(ZG_CS_TRIS)
-    #include "TCPIP Stack/ZG2100.h"
-#endif
-#endif
+#endif //__TCPIP_HITECH_WORKAROUND_H
