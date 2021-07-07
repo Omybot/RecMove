@@ -897,8 +897,8 @@ char pwm(unsigned char motor, double valeur) // Value = +/- 4000
 
 	value = valeur;
 
-	if(value >  4000) value =  4000;
-	if(value < -4000) value = -4000;	
+	if(value >  2000) value =  2000;
+	if(value < -2000) value = -2000;	
 
 	value = value * 2;
 	
@@ -917,15 +917,15 @@ char pwm(unsigned char motor, double valeur) // Value = +/- 4000
 							PWM2CON1bits.PEN1L = 1;
 							PWM2CON1bits.PEN1H = 0;
 							MOT1L=0;
-							P2DC1 = 8000-(unsigned int)(-value);		
+							P2DC1 = 4000-(unsigned int)(-value);		
 						}
 						break;
 		case AVANT:
 		case GAUCHE: 	
 		case MOTEUR_2:	if(motiontype == 3)
 						{
-							if(value >  4000) value =  4000;
-							if(value < -4000) value = -4000;	
+							if(value >  2000) value =  2000;
+							if(value < -2000) value = -2000;	
 					
 						}
 						if(value > 0)	// Moteur Gauche
@@ -940,15 +940,15 @@ char pwm(unsigned char motor, double valeur) // Value = +/- 4000
 							PWM1CON1bits.PEN3L = 1;
 							PWM1CON1bits.PEN3H = 0;
 							MOT2L=0;
-							P1DC3 = 8000-(unsigned int)(-value);		
+							P1DC3 = 4000-(unsigned int)(-value);		
 						}
 						break;
 		case ARRIERE:
 		case DROITE:
 		case MOTEUR_3:	if(motiontype == 3)
 						{
-							if(value >  4000) value =  4000;
-							if(value < -4000) value = -4000;	
+							if(value >  2000) value =  2000;
+							if(value < -2000) value = -2000;	
 						
 						}
 						if(value > 0)	// Moteur Gauche
@@ -963,7 +963,7 @@ char pwm(unsigned char motor, double valeur) // Value = +/- 4000
 							PWM1CON1bits.PEN2L = 1;
 							PWM1CON1bits.PEN2H = 0;
 							MOT3L=0;
-							P1DC2 = 8000-(unsigned int)(-value);		
+							P1DC2 = 4000-(unsigned int)(-value);		
 						}
 						break;
 		case MOTEUR_4:	if(value > 0)	// Moteur Gauche
@@ -978,7 +978,7 @@ char pwm(unsigned char motor, double valeur) // Value = +/- 4000
 							PWM1CON1bits.PEN1L = 1;
 							PWM1CON1bits.PEN1H = 0;
 							MOT4L=0;
-							P1DC1 = 8000-(unsigned int)(-value);		
+							P1DC1 = 4000-(unsigned int)(-value);		
 						}
 						break;
 		default : 		return -1;

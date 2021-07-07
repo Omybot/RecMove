@@ -100,13 +100,14 @@ Trame AnalyseTrame(Trame t);
 
 // Liste des actionneurs
 #define ALIMENTATION_CAPTEUR_COULEUR	0x00
-#define MAKEVACUUM_BACK					0x14
+#define MAKEVACUUM_BACK					0x26// Mise à jour RS2021 0x14
 #define MAKEVACUUM_FRONT				0x12
-#define OPENVACUUM_BACK					0x23
+#define OPENVACUUM_BACK					0x29// Mise à jour RS2021 0x23
 #define OPENVACUUM_FRONT				0x21
 
-#define VACUOSTAT_BACK					0x14
-#define VACUOSTAT_FRONT					0x12
+#define VACUOSTAT_BACK					0x23
+#define VACUOSTAT_RIGHT					0x22
+#define VACUOSTAT_LEFT					0x21
 #define JACK_DEMARRAGE					0x10
 // Capteurs onOff
 #define CMD_DEMANDE_CAPTEUR_ONOFF		0x74

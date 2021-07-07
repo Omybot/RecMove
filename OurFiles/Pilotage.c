@@ -100,10 +100,13 @@ Trame Retour_Capteur_Onoff(unsigned char id_capteur)
 	switch(id_capteur)
 	{
 		case VACUOSTAT_BACK:
-			Valeurs[3] = PORTCbits.RC1;
+			Valeurs[3] = PORTBbits.RB2;
 			break;
-		case VACUOSTAT_FRONT:
-			Valeurs[3] = PORTCbits.RC2;
+		case VACUOSTAT_RIGHT:
+			Valeurs[3] = PORTBbits.RB3;
+			break;
+		case VACUOSTAT_LEFT:
+			Valeurs[3] = PORTCbits.RC0;
 			break;
 		case JACK_DEMARRAGE:
 			Valeurs[3] = !PORTBbits.RB2;
@@ -186,64 +189,26 @@ void PiloteActionneurOnOff(unsigned char id, OnOff onOff)
 		case ALIMENTATION_CAPTEUR_COULEUR:
 			alim_capteur_couleur = onOff;
 			break;
-
+		// Mise à jour RS2021
 		case MAKEVACUUM_BACK:
 			if(onOff)
 			{
-				PWM2CON1bits.PEN1L = 1;
-				MOT1L=0;
-				P2DC1 = 4000;
+				pwm(MOTEUR_4,1460);
 			}
 			else
 			{
-				PWM2CON1bits.PEN1L = 0;
-				MOT1L=1;
-				P2DC1 = 4000;
-			}
-			break;
-
-		case MAKEVACUUM_FRONT:
-			if(onOff)
-			{
-				PWM2CON1bits.PEN1H = 1;
-				MOT1H=0;
-				P2DC1 = 4000;
-			}
-			else
-			{
-				PWM2CON1bits.PEN1H = 0;
-				MOT1H=1;
-				P2DC1 = 4000;
+				pwm(MOTEUR_4,0);
 			}
 			break;
 
 		case OPENVACUUM_BACK:
 			if(onOff)
 			{
-				PWM1CON1bits.PEN1L = 1;
-				MOT4L=0;
-				P1DC1 = 4000;
+				pwm(MOTEUR_1,1460);
 			}
 			else
 			{
-				PWM1CON1bits.PEN1L = 0;
-				MOT4L=1;
-				P1DC1 = 4000;
-			}
-			break;
-
-		case OPENVACUUM_FRONT:
-			if(onOff)
-			{
-				PWM1CON1bits.PEN1H = 1;
-				MOT4H=0;
-				P1DC1 = 4000;
-			}
-			else
-			{
-				PWM1CON1bits.PEN1H = 0;
-				MOT4H=1;
-				P1DC1 = 4000;
+				pwm(MOTEUR_1,0);
 			}
 			break;
 	}

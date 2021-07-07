@@ -9,7 +9,7 @@ unsigned int ADC_Results[8],DmaBuffer = 0;
 void InitClk(void)
 {	
 	PLLFBD = 38;				// Multiply by 40 for 160MHz VCO output (8MHz XT oscillator)
-	CLKDIV = 0x0000;			// FRC: divide by 2, PLLPOST: divide by 2, PLLPRE: divide by 2
+	CLKDIV = 2;			// FRC: divide by 2, PLLPOST: divide by 2, PLLPRE: divide by 2
 	
 	__builtin_write_OSCCONH(0x03);
 	__builtin_write_OSCCONL(OSCCON | 0x01);
@@ -92,7 +92,7 @@ void InitPorts()
 	TRISBbits.TRISB14=0; // MOT4_PWMH - Moteurs
 	TRISBbits.TRISB15=0; // MOT4_PWML - Moteurs
 	
-	TRISCbits.TRISC0=0; // RC0 - Mezzanine
+	TRISCbits.TRISC0=1; // RC0 - Mezzanine
 	TRISCbits.TRISC1=1; // RC1 - Mezzanine
 	TRISCbits.TRISC2=1; // RC2 - Mezzanine
 	TRISCbits.TRISC3=0; // SCK1 - Ethernet MSCK
@@ -116,14 +116,14 @@ void InitPorts()
 	RPINR20bits.SDI1R = 21     ; // SDI1 		<==> RP21 RC5
 
 	//Confguration des ports pour le module UART2 (LIDAR)
-	RPOR8bits.RP16R = 0b00101;	//TX RP16
-    RPINR19bits.U2RXR = 3; //RX RP3
+	//RPOR8bits.RP16R = 0b00101;	//TX RP16
+    //RPINR19bits.U2RXR = 3; //RX RP3
 
 	// Capteur de couleur OUT  
 	RPINR7bits.IC1R 	= 4;		//RP4
 
 	// Pull up jack
-	CNPU1bits.CN6PUE=1;
+	//CNPU1bits.CN6PUE=1;
 
 }
 
@@ -218,7 +218,7 @@ void InitPWM(void)
 	// 
 
 	P1TCONbits.PTEN = 1; 		// PWM Time base is On
-	P1TPER = 4000 - 1; 			// 10kHz PWM (4000 counts @40MIPS)
+	P1TPER = 2000 - 1; 			// 10kHz PWM (4000 counts @40MIPS)
 	PWM1CON1bits.PEN1L = 0;		// PWM1L1 pin is disabled for PWM output
 	PWM1CON1bits.PEN1H = 0;		// PWM1H1 pin is disabled for PWM output
 	PWM1CON1bits.PEN2L = 0;		// PWM1L2 pin is disabled for PWM output
@@ -231,11 +231,11 @@ void InitPWM(void)
 	P1DC3 = 0; // 8000	==> PWM 100%
 
 	P2TCONbits.PTEN = 1; 		// PWM Time base is On
-	P2TPER = 4000 - 1; 			// 10kHz PWM (4000 counts @40MIPS)
+	P2TPER = 2000 - 1; 			// 10kHz PWM (4000 counts @40MIPS)
 	PWM2CON1bits.PEN1L = 0;		// PWM2L1 pin is disabled for PWM output
 	PWM2CON1bits.PEN1H = 0;		// PWM2L2 pin is disabled for PWM output
 
-	P2DC1 = 4000;
+	P2DC1 = 2000;
 }
 
 void InitQEI(void)

@@ -57,7 +57,7 @@ unsigned char buffer_envoi_uart[UART_BUFFER_SIZE];
 //Variable Capteur Couleur
 unsigned int Cpt_Tmr2_Capteur_Couleur = 0;
 unsigned int Tab_Capteur_Couleur[8] = {0};
-unsigned char etat_Capteur_Couleur = 0,alim_capteur_couleur=0;
+unsigned char etat_Capteur_Couleur = 0,alim_capteur_couleur=1;
 
 unsigned char jack_value=0,jack_value_old=0,jack_cpt=0;
 
@@ -164,14 +164,14 @@ int main(void)
 	
 	InitClk(); 		// Initialisation de l'horloge
 	InitPorts(); 	// Initialisation des ports E/S
-    MOT1L = 1;
-	MOT1H = 1;
+    MOT1L = 0;
+	MOT1H = 0;
 	MOT2L = 0;
 	MOT2H = 0;
 	MOT3L = 0;
 	MOT3H = 0;
-	MOT4L = 1;
-	MOT4H = 1;
+	MOT4L = 0;
+	MOT4H = 0;
 
 	jack_value = PORTBbits.RB2;
 	jack_value_old = jack_value;
@@ -182,7 +182,7 @@ int main(void)
 	Init_Timer5();
 	InitQEI(); 		// Initialisation des entrées en quadrature
 	InitPWM();		// Configuration du module PWM 
-        
+    
 	InitProp();
 	
 	// Initialize stack-related hardware components that may be 
@@ -207,6 +207,9 @@ int main(void)
 	//EnvoiUART(envoiBaudrateHokuyo);
 	//U2BRG = 19;			// Chgt de baudrate apres avoir repassé le lidar en 19200 // 86 pour 115200 // 520 pour 19200
 	DelayMs(500); 
+
+
+
 
 	while(1)
 	{
